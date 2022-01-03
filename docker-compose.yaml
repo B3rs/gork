@@ -1,0 +1,32 @@
+version: "3.7"
+services:
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=gork
+    volumes:
+      - ./example/initdb:/docker-entrypoint-initdb.d/
+  worker:
+    image: golang
+    working_dir: /workspace/example/worker
+    command: 'go run main.go'
+    environment:
+      - POSTGRES_URI=postgres://root:root@postgres:5432/gork?sslmode=disable
+    depends_on:
+      - postgres
+    volumes:
+      - .:/workspace
+  client:
+    image: golang
+    working_dir: /workspace/example/client
+    command: 'go run main.go'
+    environment:
+      - POSTGRES_URI=postgres://root:root@postgres:5432/gork?sslmode=disable
+    depends_on:
+      - postgres
+    volumes:
+      - .:/workspace
