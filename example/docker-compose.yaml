@@ -9,7 +9,7 @@ services:
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=gork
     volumes:
-      - ./example/initdb:/docker-entrypoint-initdb.d/
+      - ./initdb:/docker-entrypoint-initdb.d/
   worker:
     image: golang
     working_dir: /workspace/example/worker
@@ -19,7 +19,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - .:/workspace
+      - ./..:/workspace
   client:
     image: golang
     working_dir: /workspace/example/client
@@ -29,4 +29,4 @@ services:
     depends_on:
       - postgres
     volumes:
-      - .:/workspace
+      - ./..:/workspace
