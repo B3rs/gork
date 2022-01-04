@@ -45,6 +45,15 @@ func (q *Queue) isClosed() bool {
 	return q.closing
 }
 
+const acquireSQL = `SELECT id, status, queue, arguments, result, last_error, created_at, updated_at, scheduled_at
+FROM jobs 
+WHERE status = 'scheduled' 
+	AND scheduled_at <= now()
+	AND queue = $1
+ORDER BY scheduled_at ASC 
+FOR UPDATE SKIP LOCKED
+LIMIT 1 `
+
 // AcquireJob acquires a job from the database and locks it until the transaction is committed or rolled back
 func (q *Queue) AcquireJob() (jobs.Job, error) {
 	if q.isClosed() {
@@ -60,14 +69,7 @@ func (q *Queue) AcquireJob() (jobs.Job, error) {
 
 	lastError := &sql.NullString{}
 
-	err = tx.QueryRow(`SELECT id, status, queue, arguments, result, last_error, created_at, updated_at, scheduled_at
-	FROM jobs 
-	WHERE status = 'scheduled' 
-	AND scheduled_at <= now()
-	AND queue = $1
-	ORDER BY scheduled_at ASC 
-	FOR UPDATE SKIP LOCKED
-	LIMIT 1`, q.name).
+	err = tx.QueryRow(acquireSQL, q.name).
 		Scan(
 			&job.ID,
 			&job.Status,
