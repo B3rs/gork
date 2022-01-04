@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"math/rand"
 	"os"
+	"strconv"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -21,13 +22,13 @@ func main() {
 		panic(err)
 	}
 
-	for {
+	for i := 0; i < 10; i++ {
 		tx, err := db.Begin()
 		if err != nil {
 			panic(err)
 		}
 
-		if err := client.Enqueue(tx, "default", args{Wow: rand.Int() % 200}); err != nil {
+		if err := client.Schedule(tx, strconv.Itoa(i), "default", args{Wow: rand.Int() % 200}); err != nil {
 			panic(err)
 		}
 
@@ -35,7 +36,28 @@ func main() {
 			panic(err)
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		//time.Sleep(500 * time.Millisecond)
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	if err := client.Cancel(tx, "3"); err != nil {
+		panic(err)
+	}
+
+	if err := client.Cancel(tx, "6"); err != nil {
+		panic(err)
+	}
+
+	if err := client.Cancel(tx, "9"); err != nil {
+		panic(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		panic(err)
 	}
 
 }

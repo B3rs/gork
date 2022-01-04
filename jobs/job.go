@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"time"
 )
 
@@ -15,6 +14,8 @@ const (
 	StatusScheduled = "scheduled"
 	// StatusFailed is the status of a job that has failed
 	StatusFailed = "failed"
+	// StatusCanceled is the status of a job that has been canceled
+	StatusCanceled = "canceled"
 )
 
 // Job could use generics for params and result
@@ -33,7 +34,6 @@ type Job struct {
 }
 
 func (j Job) ParseArguments(dest interface{}) error {
-	fmt.Println("Parsing arguments", string(j.Arguments))
 	return json.Unmarshal(j.Arguments, dest)
 }
 
