@@ -28,7 +28,7 @@ func ScheduleAt(tx *sql.Tx, id string, queueName string, arguments interface{}, 
 		return err
 	}
 
-	_, err = tx.Exec("INSERT INTO jobs (id, queue, status, arguments, scheduled_at) VALUES ($1, $2, $3, $4)", id, queueName, jobs.StatusScheduled, encoded, scheduledAt)
+	_, err = tx.Exec("INSERT INTO jobs (id, queue, status, arguments, scheduled_at) VALUES ($1, $2, $3, $4, $5)", id, queueName, jobs.StatusScheduled, encoded, scheduledAt)
 	return err
 }
 

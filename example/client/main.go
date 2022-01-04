@@ -35,8 +35,6 @@ func main() {
 		if err := tx.Commit(); err != nil {
 			panic(err)
 		}
-
-		//time.Sleep(500 * time.Millisecond)
 	}
 
 	tx, err := db.Begin()
@@ -53,6 +51,14 @@ func main() {
 	}
 
 	if err := client.Cancel(tx, "9"); err != nil {
+		panic(err)
+	}
+
+	if err := client.ScheduleAt(tx, "1218", "default", args{Wow: 123}, time.Now().Add(10*time.Second)); err != nil {
+		panic(err)
+	}
+
+	if err := client.ScheduleAfter(tx, "3654", "default", args{Wow: 5684}, 5*time.Second); err != nil {
 		panic(err)
 	}
 
