@@ -1,6 +1,7 @@
 package workers
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"sync"
@@ -27,49 +28,31 @@ type Queue struct {
 
 	db   *sql.DB
 	name string
-
-	closing bool
-}
-
-// Close closes the queue
-func (q *Queue) Close() {
-	q.Lock()
-	q.closing = true
-	q.Unlock()
-}
-
-// isClosed returns true if the queue is closing
-func (q *Queue) isClosed() bool {
-	q.Lock()
-	defer q.Unlock()
-	return q.closing
 }
 
 const acquireSQL = `SELECT id, status, queue, arguments, result, last_error, created_at, updated_at, scheduled_at
 FROM jobs 
-WHERE status = 'scheduled' 
+WHERE status = $1
 	AND scheduled_at <= now()
-	AND queue = $1
+	AND queue = $2
 ORDER BY scheduled_at ASC 
 FOR UPDATE SKIP LOCKED
 LIMIT 1 `
 
 // AcquireJob acquires a job from the database and locks it until the transaction is committed or rolled back
-func (q *Queue) AcquireJob() (jobs.Job, error) {
-	if q.isClosed() {
-		return jobs.Job{}, ErrQueueIsClosed
-	}
+func (q *Queue) AcquireJobs(ctx context.Context, count int) ([]jobs.Job, error) {
 
 	tx, err := q.db.Begin()
 	if err != nil {
-		return jobs.Job{}, err
+		return nil, err
 	}
 
 	job := jobs.Job{Tx: tx}
 
 	lastError := &sql.NullString{}
 
-	err = tx.QueryRow(acquireSQL, q.name).
+	// TODO implement real scan on query with variable limit
+	err = tx.QueryRowContext(ctx, acquireSQL, jobs.StatusScheduled, q.name).
 		Scan(
 			&job.ID,
 			&job.Status,
@@ -83,13 +66,13 @@ func (q *Queue) AcquireJob() (jobs.Job, error) {
 		)
 
 	if err == sql.ErrNoRows {
-		if err := tx.Commit(); err != nil {
-			return jobs.Job{}, err
-		}
-		return jobs.Job{}, ErrJobNotFound
+		return nil, tx.Commit()
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	job.LastError = lastError.String
 
-	return job, err
+	return []jobs.Job{job}, err
 }

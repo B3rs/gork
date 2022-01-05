@@ -15,6 +15,10 @@ type args struct {
 	Wow int `json:"wow"`
 }
 
+type args2 struct {
+	Bau int `json:"bau"`
+}
+
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	db, err := sql.Open("postgres", os.Getenv("POSTGRES_URI"))
@@ -28,7 +32,11 @@ func main() {
 			panic(err)
 		}
 
-		if err := client.Schedule(tx, strconv.Itoa(i), "default", args{Wow: rand.Int() % 200}); err != nil {
+		if err := client.Schedule(tx, "increase_"+strconv.Itoa(i), "increase", args{Wow: rand.Int() % 200}); err != nil {
+			panic(err)
+		}
+
+		if err := client.Schedule(tx, "decrease_"+strconv.Itoa(i), "decrease", args2{Bau: rand.Int() % 200}); err != nil {
 			panic(err)
 		}
 
@@ -54,11 +62,11 @@ func main() {
 		panic(err)
 	}
 
-	if err := client.ScheduleAt(tx, "1218", "default", args{Wow: 123}, time.Now().Add(10*time.Second)); err != nil {
+	if err := client.ScheduleAt(tx, "1218", "increase", args{Wow: 123}, time.Now().Add(10*time.Second)); err != nil {
 		panic(err)
 	}
 
-	if err := client.ScheduleAfter(tx, "3654", "default", args{Wow: 5684}, 5*time.Second); err != nil {
+	if err := client.ScheduleAfter(tx, "3654", "increase", args{Wow: 5684}, 5*time.Second); err != nil {
 		panic(err)
 	}
 
