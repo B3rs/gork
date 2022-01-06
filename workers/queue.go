@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"sync"
 
 	"github.mpi-internal.com/SCM-Italy/gork/jobs"
 )
@@ -24,8 +23,6 @@ func NewQueue(name string, db *sql.DB) *Queue {
 }
 
 type Queue struct {
-	sync.Mutex
-
 	db   *sql.DB
 	name string
 }

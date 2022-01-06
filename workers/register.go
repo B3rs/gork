@@ -2,7 +2,6 @@ package workers
 
 import (
 	"context"
-	"errors"
 
 	"github.mpi-internal.com/SCM-Italy/gork/jobs"
 )
@@ -13,45 +12,38 @@ type workerInfo struct {
 }
 
 func newRegister() register {
-	return register{
-		workers: make(map[string]workerInfo),
-	}
+	return register{}
 }
 
-type register struct {
-	workers map[string]workerInfo
-}
+type register map[string]workerInfo
 
-func (r *register) RegisterWorker(name string, worker Worker, instances int) {
-	r.workers[name] = workerInfo{
+// RegisterWorker registers a worker with the given name.
+func (r register) RegisterWorker(queueName string, worker Worker, instances int) {
+	r[queueName] = workerInfo{
 		worker:    worker,
 		instances: instances,
 	}
 }
 
+// funcWorker is just a wrapper for a WorkerFunc.
 type funcWorker struct {
 	f WorkerFunc
 }
 
+// Execute runs the worker function for the given job.
 func (f funcWorker) Execute(ctx context.Context, job jobs.Job) (interface{}, error) {
 	return f.f(ctx, job)
 }
 
-func (r *register) RegisterWorkerFunc(name string, worker WorkerFunc, instances int) {
+// RegisterWorkerFunc registers a worker function with the given queue name.
+func (r register) RegisterWorkerFunc(queueName string, worker WorkerFunc, instances int) {
 
-	r.workers[name] = workerInfo{
+	r[queueName] = workerInfo{
 		worker:    funcWorker{f: worker},
 		instances: instances,
 	}
 }
 
-func (r *register) GetWorker(name string) (workerInfo, error) {
-	if worker, ok := r.workers[name]; ok {
-		return worker, nil
-	}
-	return workerInfo{}, errors.New("worker not found")
-}
-
-func (r *register) GetWorkers() map[string]workerInfo {
-	return r.workers
+func (r register) getWorkers() map[string]workerInfo {
+	return r
 }

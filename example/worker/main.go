@@ -24,10 +24,11 @@ func main() {
 	}
 
 	pool := workers.NewWorkerPool(db, 100*time.Millisecond)
-	pool.RegisterWorker("increase", IncreaseWorker{}, 10) // worker can be a struct method (so you can inject dependencies)
-	pool.RegisterWorkerFunc("decrease", Decrease, 2)      // or a simple function
+	pool.RegisterWorker("increase", IncreaseWorker{}, 3) // worker can be a struct method (so you can inject dependencies)
+	pool.RegisterWorkerFunc("decrease", Decrease, 2)     // or a simple function
 
 	sigc := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
 	signal.Notify(sigc,
 		syscall.SIGHUP,
 		syscall.SIGINT,
@@ -35,12 +36,13 @@ func main() {
 		syscall.SIGQUIT)
 	go func() {
 		<-sigc
-		fmt.Println("\nReceived an interrupt, stopping services...")
+		fmt.Println("\n\n\nReceived an interrupt, stopping services...\n\n")
 		pool.Stop()
+		done <- true
 	}()
 
 	pool.Start()
-
+	<-done
 }
 
 type args struct {
@@ -58,16 +60,15 @@ func (w IncreaseWorker) Execute(ctx context.Context, job jobs.Job) (interface{},
 	if err := job.ParseArguments(&a); err != nil {
 		return nil, err
 	}
-	fmt.Printf("increase arguments %v\n", a)
 
 	time.Sleep(time.Duration(rand.Int()%2000) * time.Millisecond)
 
 	if a.Wow == 123 {
+		time.Sleep(10 * time.Second)
 		return nil, errors.New("error, number is 123")
 	}
 
 	result := a.Wow + 1
-	fmt.Println("increase result", result)
 	return result, nil
 }
 
@@ -83,7 +84,6 @@ func Decrease(ctx context.Context, job jobs.Job) (interface{}, error) {
 	if err := job.ParseArguments(&a); err != nil {
 		return nil, err
 	}
-	fmt.Printf("decrease arguments %v\n", a)
 
 	time.Sleep(time.Duration(rand.Int()%2000) * time.Millisecond)
 
@@ -91,6 +91,5 @@ func Decrease(ctx context.Context, job jobs.Job) (interface{}, error) {
 		return nil, errors.New("error, number is 21")
 	}
 	result := a.Bau - 1
-	fmt.Println("decrease result", result)
 	return result, nil
 }

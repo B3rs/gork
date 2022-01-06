@@ -11,22 +11,22 @@ services:
     volumes:
       - ./initdb:/docker-entrypoint-initdb.d/
   worker:
-    image: golang
-    working_dir: /workspace/example/worker
-    command: 'go run main.go'
+    build:
+      context: ./..
+      dockerfile: ./example/worker/Dockerfile
+    stop_signal: SIGTERM
+    restart: on-failure
     environment:
       - POSTGRES_URI=postgres://root:root@postgres:5432/gork?sslmode=disable
     depends_on:
       - postgres
-    volumes:
-      - ./..:/workspace
   client:
-    image: golang
-    working_dir: /workspace/example/client
-    command: 'go run main.go'
+    build:
+      context: ./..
+      dockerfile: ./example/client/Dockerfile
+    stop_signal: SIGTERM
+    restart: on-failure
     environment:
       - POSTGRES_URI=postgres://root:root@postgres:5432/gork?sslmode=disable
     depends_on:
       - postgres
-    volumes:
-      - ./..:/workspace
