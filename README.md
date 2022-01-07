@@ -13,11 +13,11 @@ gork uses postgresql tables to create a queue of jobs that can be executed, re-e
 see examples to see it in action.
 
 ### TODO
-- [] proper documentation
-- [] database indexes tuning
-- [] improve code structure
-- [] admin ui
-- [] metrics and alerts
-- [] job retry
-- [] failure notifications (investigate sentry)
-- [] performance benchmarks
+- [ ] proper documentation
+- [ ] database indexes tuning
+- [ ] improve code structure
+- [ ] admin ui
+- [ ] metrics and alerts
+- [ ] job retry
+- [ ] failure notifications (investigate sentry)
+- [ ] performance benchmarks
