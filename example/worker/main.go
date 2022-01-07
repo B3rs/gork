@@ -64,7 +64,6 @@ func (w IncreaseWorker) Execute(ctx context.Context, job jobs.Job) (interface{},
 	time.Sleep(time.Duration(rand.Int()%2000) * time.Millisecond)
 
 	if a.Wow == 123 {
-		time.Sleep(10 * time.Second)
 		return nil, errors.New("error, number is 123")
 	}
 

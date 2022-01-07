@@ -1,8 +1,6 @@
 package jobs
 
 import (
-	"context"
-	"database/sql"
 	"encoding/json"
 	"time"
 )
@@ -29,69 +27,31 @@ type Job struct {
 	ScheduledAt time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-
-	Tx *sql.Tx
 }
 
 func (j Job) ParseArguments(dest interface{}) error {
 	return json.Unmarshal(j.Arguments, dest)
 }
 
-// SetStatus sets the status of a job
-func (j *Job) SetStatus(ctx context.Context, status string) error {
-	_, err := j.Tx.ExecContext(ctx,
-		`UPDATE jobs
-SET status = $2,
-updated_at = now()
-WHERE id = $1`,
-		j.ID,
-		status,
-	)
-
-	return err
+// SetStatus sets the status of the job
+func (j *Job) SetStatus(status string) {
+	j.Status = status
 }
 
-// SetResult sets the result of a job
-func (j *Job) SetResult(ctx context.Context, result interface{}) error {
-	if result == nil {
+// SetLastError sets the last error of the job
+func (j *Job) SetLastError(err error) {
+	j.LastError = err.Error()
+}
+
+// SetResult sets the result of the job
+func (j *Job) SetResult(res interface{}) error {
+	if res == nil {
 		return nil
 	}
-
-	encoded, err := json.Marshal(result)
+	encoded, err := json.Marshal(res)
 	if err != nil {
 		return err
 	}
-
-	_, err = j.Tx.ExecContext(ctx,
-		`UPDATE jobs
-SET result = $2,
-updated_at = now()
-WHERE id = $1`,
-		j.ID,
-		encoded,
-	)
-	return err
-}
-
-// SetLastError sets the last error of a job
-func (j *Job) SetLastError(ctx context.Context, e error) error {
-	_, err := j.Tx.ExecContext(ctx,
-		`UPDATE jobs
-SET last_error = $2,
-updated_at = now()
-WHERE id = $1`,
-		j.ID,
-		e.Error(),
-	)
-	return err
-}
-
-// Commit commits the transaction
-func (j *Job) Commit() error {
-	return j.Tx.Commit()
-}
-
-// Rollback rolls back the transaction
-func (j *Job) Rollback() error {
-	return j.Tx.Rollback()
+	j.Result = encoded
+	return nil
 }

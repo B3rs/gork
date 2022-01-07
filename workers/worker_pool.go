@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"sync"
 	"time"
-
-	"github.mpi-internal.com/SCM-Italy/gork/jobs"
 )
 
 func NewWorkerPool(db *sql.DB, pollSleepInterval time.Duration) *WorkerPool {
@@ -47,15 +45,9 @@ func (w *WorkerPool) Start() {
 	wg := &sync.WaitGroup{}
 
 	for name, info := range w.register.getWorkers() {
-
-		// need to spawn a goroutine for polling the db
-		poller := newPoller(w.db, name, w.pollSleepInterval)
-		wg.Add(1)
-		go pollerRoutine(ctx, poller, errChan, wg)
-
 		for i := 0; i < info.instances; i++ {
 			wg.Add(1)
-			go workerRoutine(ctx, info.worker, poller.jobs(), errChan, wg)
+			go w.workerRoutine(ctx, name, info.worker, errChan, wg)
 		}
 	}
 
@@ -74,26 +66,7 @@ func errorRoutine(errChan <-chan error, wg *sync.WaitGroup) {
 	}
 }
 
-func pollerRoutine(ctx context.Context, poller poller, errChan chan<- error, wg *sync.WaitGroup) {
+func (w *WorkerPool) workerRoutine(ctx context.Context, queueName string, worker Worker, errChan chan<- error, wg *sync.WaitGroup) {
 	defer wg.Done()
-	defer poller.stop()
-	defer fmt.Println("Shutting down poller...")
-
-	publishErrorAndRestart(errChan, func() error {
-		return poller.start(ctx)
-	})
-}
-func workerRoutine(ctx context.Context, worker Worker, c <-chan jobs.Job, errChan chan<- error, wg *sync.WaitGroup) {
-	defer wg.Done()
-	execute(ctx, worker, c, errChan)
-}
-
-func publishErrorAndRestart(errChan chan<- error, f func() error) {
-	for {
-		err := f()
-		if err == nil {
-			return
-		}
-		errChan <- err
-	}
+	newWorker(w.db, queueName, worker, w.pollSleepInterval).startWorkLoop(ctx, errChan)
 }
