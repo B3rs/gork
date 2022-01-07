@@ -15,9 +15,9 @@ see examples to see it in action.
 ### TODO
 - [ ] proper documentation
 - [ ] database indexes tuning
-- [ ] improve code structure
+- [x] improve code structure
 - [ ] admin ui
 - [ ] metrics and alerts
-- [ ] job retry
+- [x] job retry
 - [ ] failure notifications (investigate sentry)
 - [ ] performance benchmarks
