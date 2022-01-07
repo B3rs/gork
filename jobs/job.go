@@ -24,7 +24,6 @@ type Job struct {
 	Arguments   []byte
 	Result      []byte
 	LastError   string
-	Options     Options
 	ScheduledAt time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
