@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"time"
 )
@@ -24,6 +25,8 @@ type Job struct {
 	Arguments   []byte
 	Result      []byte
 	LastError   string
+	RetryCount  int
+	Options     Options
 	ScheduledAt time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -31,6 +34,16 @@ type Job struct {
 
 func (j Job) ParseArguments(dest interface{}) error {
 	return json.Unmarshal(j.Arguments, dest)
+}
+
+func (j Job) ShouldRetry() bool {
+	return j.RetryCount < j.Options.MaxRetries
+}
+
+func (j *Job) ScheduleRetry(t time.Time) {
+	j.RetryCount++
+	j.ScheduledAt = t
+	j.Status = StatusScheduled
 }
 
 // SetStatus sets the status of the job
@@ -54,4 +67,30 @@ func (j *Job) SetResult(res interface{}) error {
 	}
 	j.Result = encoded
 	return nil
+}
+
+// SetArguments sets the arguments of the job
+func (j *Job) SetArguments(args interface{}) error {
+	if args == nil {
+		return nil
+	}
+	encoded, err := json.Marshal(args)
+	if err != nil {
+		return err
+	}
+	j.Arguments = encoded
+	return nil
+}
+
+type Options struct {
+	MaxRetries    int           `json:"max_retries"`
+	RetryInterval time.Duration `json:"retry_interval"`
+}
+
+func (o Options) Value() (driver.Value, error) {
+	return json.Marshal(o)
+}
+
+func (o *Options) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), o)
 }

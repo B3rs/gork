@@ -42,15 +42,24 @@ type worker struct {
 func (w *worker) work(ctx context.Context, tx *jobs.Tx, job *jobs.Job) error {
 
 	// explicity copy the job to avoid user provided function to modify the job
-	if res, err := w.worker.Execute(ctx, *job); err != nil {
-		job.SetStatus(jobs.StatusFailed)
-		job.SetLastError(err)
-	} else {
-		job.SetStatus(jobs.StatusCompleted)
-		if err := job.SetResult(res); err != nil {
-			job.SetLastError(err)
+	res, err := w.worker.Execute(ctx, *job)
+	if err != nil {
+		if job.ShouldRetry() {
+			t := time.Now().Add(job.Options.RetryInterval)
+			job.ScheduleRetry(t)
+		} else {
+			job.SetStatus(jobs.StatusFailed)
 		}
+		job.SetLastError(err)
+
+		return tx.Update(ctx, job)
 	}
+
+	job.SetStatus(jobs.StatusCompleted)
+	if err := job.SetResult(res); err != nil {
+		job.SetLastError(err)
+	}
+
 	return tx.Update(ctx, job)
 }
 

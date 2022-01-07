@@ -1,44 +1,75 @@
 package client
 
 import (
+	"context"
 	"database/sql"
-	"encoding/json"
 	"time"
 
 	"github.mpi-internal.com/SCM-Italy/gork/jobs"
 )
 
+var (
+	defaultOptions = []OptionFunc{
+		WithRetryInterval(10 * time.Second),
+		scheduleImmediately(),
+	}
+)
+
 // Schedule schedules a job in the queue to be executed as soon as possible
-func Schedule(tx *sql.Tx, id string, queueName string, arguments interface{}) error {
+func Schedule(ctx context.Context, tx *sql.Tx, id string, queueName string, arguments interface{}, options ...OptionFunc) error {
+	job := &jobs.Job{
+		ID:     id,
+		Queue:  queueName,
+		Status: jobs.StatusScheduled,
+	}
 
-	encoded, err := json.Marshal(arguments)
-	if err != nil {
+	if err := job.SetArguments(arguments); err != nil {
 		return err
 	}
 
-	_, err = tx.Exec("INSERT INTO jobs (id, queue, status, arguments) VALUES ($1, $2, $3, $4)", id, queueName, jobs.StatusScheduled, encoded)
-	return err
-}
-
-// ScheduleAt schedules a job in the queue to be executed at the given time
-func ScheduleAt(tx *sql.Tx, id string, queueName string, arguments interface{}, scheduledAt time.Time) error {
-
-	encoded, err := json.Marshal(arguments)
-	if err != nil {
-		return err
+	for _, opt := range append(defaultOptions, options...) {
+		job = opt(job)
 	}
 
-	_, err = tx.Exec("INSERT INTO jobs (id, queue, status, arguments, scheduled_at) VALUES ($1, $2, $3, $4, $5)", id, queueName, jobs.StatusScheduled, encoded, scheduledAt)
-	return err
-}
-
-// ScheduleAfter schedules a job in the queue to be executed after the given duration
-func ScheduleAfter(tx *sql.Tx, id string, queueName string, arguments interface{}, after time.Duration) error {
-	return ScheduleAt(tx, id, queueName, arguments, time.Now().Add(after))
+	return (&jobs.Tx{Tx: tx}).Create(ctx, job)
 }
 
 // Cancel cancels a job in the queue if not already executed
-func Cancel(tx *sql.Tx, id string) error {
-	_, err := tx.Exec("UPDATE jobs SET updated_at=now(), scheduled_at=NULL, status=$1 WHERE id = $2 AND status = $3", jobs.StatusCanceled, id, jobs.StatusScheduled)
-	return err
+func Cancel(ctx context.Context, tx *sql.Tx, id string) error {
+	return (&jobs.Tx{Tx: tx}).Deschedule(ctx, id)
+}
+
+// ForceRetry reschedules a job in the queue to be executed immediately
+func ForceRetry(ctx context.Context, tx *sql.Tx, id string) error {
+	return (&jobs.Tx{Tx: tx}).ScheduleImmediately(ctx, id)
+}
+
+type OptionFunc func(j *jobs.Job) *jobs.Job
+
+func WithMaxRetries(tries int) OptionFunc {
+	return func(j *jobs.Job) *jobs.Job {
+		j.Options.MaxRetries = tries
+		return j
+	}
+}
+
+func WithRetryInterval(interval time.Duration) OptionFunc {
+	return func(j *jobs.Job) *jobs.Job {
+		j.Options.RetryInterval = interval
+		return j
+	}
+}
+
+func WithScheduleTime(t time.Time) OptionFunc {
+	return func(j *jobs.Job) *jobs.Job {
+		j.ScheduledAt = t
+		return j
+	}
+}
+
+func scheduleImmediately() OptionFunc {
+	return func(j *jobs.Job) *jobs.Job {
+		j.ScheduledAt = time.Now()
+		return j
+	}
 }

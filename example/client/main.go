@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"math/rand"
 	"os"
@@ -32,11 +33,11 @@ func main() {
 			panic(err)
 		}
 
-		if err := client.Schedule(tx, "increase_"+strconv.Itoa(i), "increase", args{Wow: rand.Int() % 200}); err != nil {
+		if err := client.Schedule(context.Background(), tx, "increase_"+strconv.Itoa(i), "increase", args{Wow: rand.Int() % 200}); err != nil {
 			panic(err)
 		}
 
-		if err := client.Schedule(tx, "decrease_"+strconv.Itoa(i), "decrease", args2{Bau: rand.Int() % 200}); err != nil {
+		if err := client.Schedule(context.Background(), tx, "decrease_"+strconv.Itoa(i), "decrease", args2{Bau: rand.Int() % 200}); err != nil {
 			panic(err)
 		}
 
@@ -50,23 +51,19 @@ func main() {
 		panic(err)
 	}
 
-	if err := client.Cancel(tx, "3"); err != nil {
+	if err := client.Cancel(context.Background(), tx, "increase_3"); err != nil {
 		panic(err)
 	}
 
-	if err := client.Cancel(tx, "6"); err != nil {
+	if err := client.Cancel(context.Background(), tx, "increase_6"); err != nil {
 		panic(err)
 	}
 
-	if err := client.Cancel(tx, "9"); err != nil {
+	if err := client.Cancel(context.Background(), tx, "increase_9"); err != nil {
 		panic(err)
 	}
 
-	if err := client.ScheduleAt(tx, "1218", "increase", args{Wow: 123}, time.Now().Add(10*time.Second)); err != nil {
-		panic(err)
-	}
-
-	if err := client.ScheduleAfter(tx, "3654", "increase", args{Wow: 5684}, 5*time.Second); err != nil {
+	if err := client.Schedule(context.Background(), tx, "1218", "increase", args{Wow: 123}, client.WithMaxRetries(3), client.WithScheduleTime(time.Now().Add(10*time.Second))); err != nil {
 		panic(err)
 	}
 

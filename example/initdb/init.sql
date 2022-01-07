@@ -5,6 +5,8 @@ create table jobs (
   arguments jsonb not null,
   result jsonb,
   last_error varchar,
+  retry_count integer not null default 0,
+  options jsonb not null default '{}'::jsonb,
   scheduled_at timestamptz default now(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
