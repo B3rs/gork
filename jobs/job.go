@@ -19,21 +19,21 @@ const (
 
 // Job could use generics for params and result
 type Job struct {
-	ID          string
-	Queue       string
-	Status      string
-	Arguments   []byte
-	Result      []byte
-	LastError   string
-	RetryCount  int
-	Options     Options
-	ScheduledAt time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          string    `json:"id"`
+	Queue       string    `json:"queue"`
+	Status      string    `json:"status"`
+	Arguments   string    `json:"arguments"`
+	Result      string    `json:"result"`
+	LastError   string    `json:"last_error"`
+	RetryCount  int       `json:"retry_count"`
+	Options     Options   `json:"options"`
+	ScheduledAt time.Time `json:"scheduled_at"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 func (j Job) ParseArguments(dest interface{}) error {
-	return json.Unmarshal(j.Arguments, dest)
+	return json.Unmarshal([]byte(j.Arguments), dest)
 }
 
 func (j Job) ShouldRetry() bool {
@@ -65,7 +65,7 @@ func (j *Job) SetResult(res interface{}) error {
 	if err != nil {
 		return err
 	}
-	j.Result = encoded
+	j.Result = string(encoded)
 	return nil
 }
 
@@ -78,7 +78,7 @@ func (j *Job) SetArguments(args interface{}) error {
 	if err != nil {
 		return err
 	}
-	j.Arguments = encoded
+	j.Arguments = string(encoded)
 	return nil
 }
 

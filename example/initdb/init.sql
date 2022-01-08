@@ -1,9 +1,9 @@
-create table jobs (
+CREATE TABLE jobs (
   id varchar primary key,
   queue varchar not null,
   status varchar not null,
-  arguments jsonb not null,
-  result jsonb,
+  arguments jsonb not null default '{}'::jsonb,
+  result jsonb not null default '{}'::jsonb,
   last_error varchar,
   retry_count integer not null default 0,
   options jsonb not null default '{}'::jsonb,
@@ -13,9 +13,8 @@ create table jobs (
 );
 
 -- index on queue
+CREATE INDEX ON jobs (queue);
 -- index on scheduled_at
+CREATE INDEX ON jobs (scheduled_at);
 -- index on status
-
--- insert into jobs (queue, status, arguments) values ('default', 'scheduled', '{"wow":123}');
--- insert into jobs (queue, status, arguments) values ('default', 'completed', '{"wow":152}');
--- insert into jobs (queue, status, arguments) values ('default', 'scheduled', '{"wow":365}');
+CREATE INDEX ON jobs (status);

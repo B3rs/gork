@@ -18,7 +18,7 @@ type Worker interface {
 }
 
 type store interface {
-	Begin() (*jobs.Tx, error)
+	Begin() (jobs.Tx, error)
 }
 
 func newWorker(db *sql.DB, queueName string, w Worker, sleepInterval time.Duration) *worker {
@@ -39,7 +39,7 @@ type worker struct {
 }
 
 // Work runs the worker function for the given job.
-func (w *worker) work(ctx context.Context, tx *jobs.Tx, job *jobs.Job) error {
+func (w *worker) work(ctx context.Context, tx jobs.Tx, job *jobs.Job) error {
 
 	// explicity copy the job to avoid user provided function to modify the job
 	res, err := w.worker.Execute(ctx, *job)

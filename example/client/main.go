@@ -27,21 +27,15 @@ func main() {
 		panic(err)
 	}
 
+	c := client.NewDBClient(db)
+
 	for i := 0; i < 10; i++ {
-		tx, err := db.Begin()
-		if err != nil {
+
+		if err := c.Schedule(context.Background(), "increase_"+strconv.Itoa(i), "increase", args{Wow: rand.Int() % 200}); err != nil {
 			panic(err)
 		}
 
-		if err := client.Schedule(context.Background(), tx, "increase_"+strconv.Itoa(i), "increase", args{Wow: rand.Int() % 200}); err != nil {
-			panic(err)
-		}
-
-		if err := client.Schedule(context.Background(), tx, "decrease_"+strconv.Itoa(i), "decrease", args2{Bau: rand.Int() % 200}); err != nil {
-			panic(err)
-		}
-
-		if err := tx.Commit(); err != nil {
+		if err := c.Schedule(context.Background(), "decrease_"+strconv.Itoa(i), "decrease", args2{Bau: rand.Int() % 200}); err != nil {
 			panic(err)
 		}
 	}
@@ -51,19 +45,21 @@ func main() {
 		panic(err)
 	}
 
-	if err := client.Cancel(context.Background(), tx, "increase_3"); err != nil {
+	txc := client.NewTxClient(tx)
+
+	if err := txc.Cancel(context.Background(), "increase_3"); err != nil {
 		panic(err)
 	}
 
-	if err := client.Cancel(context.Background(), tx, "increase_6"); err != nil {
+	if err := txc.Cancel(context.Background(), "increase_6"); err != nil {
 		panic(err)
 	}
 
-	if err := client.Cancel(context.Background(), tx, "increase_9"); err != nil {
+	if err := txc.Cancel(context.Background(), "increase_9"); err != nil {
 		panic(err)
 	}
 
-	if err := client.Schedule(context.Background(), tx, "1218", "increase", args{Wow: 123}, client.WithMaxRetries(3), client.WithScheduleTime(time.Now().Add(10*time.Second))); err != nil {
+	if err := txc.Schedule(context.Background(), "1218", "increase", args{Wow: 123}, client.WithMaxRetries(3), client.WithRetryInterval(1*time.Second), client.WithScheduleTime(time.Now().Add(2*time.Second))); err != nil {
 		panic(err)
 	}
 

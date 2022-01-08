@@ -13,6 +13,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.mpi-internal.com/SCM-Italy/gork/jobs"
+	"github.mpi-internal.com/SCM-Italy/gork/web"
 	"github.mpi-internal.com/SCM-Italy/gork/workers"
 )
 
@@ -22,6 +23,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	go func() {
+		web.Start(db, ":8080")
+	}()
 
 	pool := workers.NewWorkerPool(db, 100*time.Millisecond)
 	pool.RegisterWorker("increase", IncreaseWorker{}, 3) // worker can be a struct method (so you can inject dependencies)

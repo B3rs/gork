@@ -1,5 +1,5 @@
 # gork
-golang pgsql backed worker library
+golang "postgresql backed" worker library
 
 ## Introduction
 Did you ever dream of executing code at a given time?

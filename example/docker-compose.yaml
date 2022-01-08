@@ -20,6 +20,8 @@ services:
       - POSTGRES_URI=postgres://root:root@postgres:5432/gork?sslmode=disable
     depends_on:
       - postgres
+    ports:
+      - "8080:8080"
   client:
     build:
       context: ./..
