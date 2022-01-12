@@ -16,6 +16,8 @@ see examples to see it in action.
 - [ ] proper documentation
 - [ ] database indexes tuning
 - [x] improve code structure
+- [ ] unit tests
+- [ ] goconvey tests
 - [ ] admin ui
 - [ ] metrics and alerts
 - [x] job retry

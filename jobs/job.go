@@ -15,6 +15,8 @@ const (
 	StatusFailed = "failed"
 	// StatusCanceled is the status of a job that has been canceled
 	StatusCanceled = "canceled"
+	// StatusInitialized is the status of a job that is currently being processed
+	StatusInitialized = "initialized"
 )
 
 // Job could use generics for params and result
@@ -28,6 +30,7 @@ type Job struct {
 	RetryCount  int       `json:"retry_count"`
 	Options     Options   `json:"options"`
 	ScheduledAt time.Time `json:"scheduled_at"`
+	StartedAt   time.Time `json:"started_at"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

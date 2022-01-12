@@ -1,49 +1,42 @@
 package workers
 
 import (
-	"context"
-
-	"github.mpi-internal.com/SCM-Italy/gork/jobs"
+	"time"
 )
 
-type workerInfo struct {
+type workerConfig struct {
 	worker    Worker
 	instances int
+	timeout   time.Duration
 }
 
 func newRegister() register {
 	return register{}
 }
 
-type register map[string]workerInfo
+type register map[string]workerConfig
 
 // RegisterWorker registers a worker with the given name.
-func (r register) RegisterWorker(queueName string, worker Worker, instances int) {
-	r[queueName] = workerInfo{
+func (r register) RegisterWorker(queueName string, worker Worker, instances int, opts ...WorkerOptionFunc) {
+	w := workerConfig{
 		worker:    worker,
 		instances: instances,
 	}
-}
 
-// funcWorker is just a wrapper for a WorkerFunc.
-type funcWorker struct {
-	f WorkerFunc
-}
+	options := append(defaultWorkerOptions, opts...)
 
-// Execute runs the worker function for the given job.
-func (f funcWorker) Execute(ctx context.Context, job jobs.Job) (interface{}, error) {
-	return f.f(ctx, job)
+	for _, opt := range options {
+		w = opt(w)
+	}
+	r[queueName] = w
 }
 
 // RegisterWorkerFunc registers a worker function with the given queue name.
-func (r register) RegisterWorkerFunc(queueName string, worker WorkerFunc, instances int) {
+func (r register) RegisterWorkerFunc(queueName string, worker WorkerFunc, instances int, opts ...WorkerOptionFunc) {
 
-	r[queueName] = workerInfo{
-		worker:    funcWorker{f: worker},
-		instances: instances,
-	}
+	r.RegisterWorker(queueName, funcWorker{f: worker}, instances, opts...)
 }
 
-func (r register) getWorkers() map[string]workerInfo {
+func (r register) getWorkers() map[string]workerConfig {
 	return r
 }

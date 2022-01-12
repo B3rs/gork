@@ -28,9 +28,9 @@ func main() {
 		web.Start(db, ":8080")
 	}()
 
-	pool := workers.NewWorkerPool(db, 100*time.Millisecond)
-	pool.RegisterWorker("increase", IncreaseWorker{}, 3) // worker can be a struct method (so you can inject dependencies)
-	pool.RegisterWorkerFunc("decrease", Decrease, 2)     // or a simple function
+	pool := workers.NewWorkerPool(db)
+	pool.RegisterWorker("increase", IncreaseWorker{}, 3, workers.WithTimeout(10*time.Second)) // worker can be a struct method (so you can inject dependencies)
+	pool.RegisterWorkerFunc("decrease", Decrease, 2)                                          // or a simple function
 
 	sigc := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
