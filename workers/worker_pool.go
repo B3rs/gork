@@ -88,7 +88,7 @@ func errorRoutine(errChan <-chan error, logger logger, wg *sync.WaitGroup) {
 
 func workerRoutine(ctx context.Context, queue Queue, worker Worker, sleepInterval time.Duration, errChan chan<- error, wg *sync.WaitGroup) {
 	defer wg.Done()
-	runner := newRunner(worker, queue.Update)
+	runner := newRunner(worker, queue)
 	s := newScheduler(queue, runner, sleepInterval)
 	s.Run(ctx, errChan)
 }

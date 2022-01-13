@@ -24,8 +24,8 @@ type Job struct {
 	ID          string    `json:"id"`
 	Queue       string    `json:"queue"`
 	Status      string    `json:"status"`
-	Arguments   string    `json:"arguments"`
-	Result      string    `json:"result"`
+	Arguments   []byte    `json:"arguments"`
+	Result      []byte    `json:"result"`
 	LastError   string    `json:"last_error"`
 	RetryCount  int       `json:"retry_count"`
 	Options     Options   `json:"options"`
@@ -68,7 +68,7 @@ func (j *Job) SetResult(res interface{}) error {
 	if err != nil {
 		return err
 	}
-	j.Result = string(encoded)
+	j.Result = encoded
 	return nil
 }
 
@@ -81,7 +81,7 @@ func (j *Job) SetArguments(args interface{}) error {
 	if err != nil {
 		return err
 	}
-	j.Arguments = string(encoded)
+	j.Arguments = encoded
 	return nil
 }
 

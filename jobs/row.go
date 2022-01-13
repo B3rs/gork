@@ -10,8 +10,8 @@ type jobRow struct {
 	ID          string         `json:"id"`
 	Queue       string         `json:"queue"`
 	Status      string         `json:"status"`
-	Arguments   string         `json:"arguments"`
-	Result      string         `json:"result"`
+	Arguments   []byte         `json:"arguments"`
+	Result      []byte         `json:"result"`
 	LastError   sql.NullString `json:"last_error"`
 	RetryCount  int            `json:"retry_count"`
 	Options     Options        `json:"options"`

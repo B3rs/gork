@@ -1,6 +1,6 @@
 package workers
 
-//go:generate mockgen -destination=./mocks_test.go -package=workers github.com/B3rs/gork/workers Requeuer,Queue,Runner,Worker
+//go:generate mockgen -destination=./mocks_test.go -package=workers github.com/B3rs/gork/workers Requeuer,Queue,Runner,Worker,jobUpdater
 
 import (
 	"context"

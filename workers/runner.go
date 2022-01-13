@@ -6,20 +6,18 @@ import (
 	"github.com/B3rs/gork/jobs"
 )
 
-func newRunner(worker Worker, update updateJobFunc) *runner {
+func newRunner(worker Worker, updater Queue) *runner {
 	return &runner{
-		worker: worker,
-		update: update,
+		worker:  worker,
+		updater: updater,
 	}
 }
 
 // runner runs a job in a worker, managing it's execution, errors and results.
 type runner struct {
-	worker Worker
-	update updateJobFunc
+	worker  Worker
+	updater Queue
 }
-
-type updateJobFunc func(ctx context.Context, job *jobs.Job) error
 
 func (r *runner) Run(ctx context.Context, job *jobs.Job) error {
 
@@ -34,7 +32,7 @@ func (r *runner) Run(ctx context.Context, job *jobs.Job) error {
 		}
 		job.SetLastError(err)
 
-		return r.update(ctx, job)
+		return r.updater.Update(ctx, job)
 	}
 
 	job.SetStatus(jobs.StatusCompleted)
@@ -42,5 +40,5 @@ func (r *runner) Run(ctx context.Context, job *jobs.Job) error {
 		job.SetLastError(err)
 	}
 
-	return r.update(ctx, job)
+	return r.updater.Update(ctx, job)
 }
