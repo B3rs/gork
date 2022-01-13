@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/B3rs/gork/client"
+	"github.com/B3rs/gork/jobs"
 	echo "github.com/labstack/echo/v4"
-	"github.mpi-internal.com/SCM-Italy/gork/client"
-	"github.mpi-internal.com/SCM-Italy/gork/jobs"
 )
 
 func Start(db *sql.DB, addr string) error {

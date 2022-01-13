@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/B3rs/gork/client"
 	_ "github.com/lib/pq"
-	"github.mpi-internal.com/SCM-Italy/gork/client"
 )
 
 type args struct {

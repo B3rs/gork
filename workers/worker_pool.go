@@ -7,33 +7,34 @@ import (
 	"sync"
 	"time"
 
-	"github.mpi-internal.com/SCM-Italy/gork/jobs"
+	"github.com/B3rs/gork/jobs"
 )
 
-type poolConfig struct {
-	schedulerSleepInterval time.Duration
-	reaperInterval         time.Duration
+type logger interface {
+	Log(keyvals ...interface{}) error
 }
 
 func NewWorkerPool(db *sql.DB, opts ...PoolOptionFunc) *WorkerPool {
-	po := poolConfig{}
+	w := &WorkerPool{
+		db:       db,
+		register: newRegister(),
+	}
 
 	options := append(defaultPoolOptions, opts...)
 	for _, opt := range options {
-		po = opt(po)
+		w = opt(w)
 	}
 
-	return &WorkerPool{
-		db:       db,
-		register: newRegister(),
-		options:  po,
-	}
+	return w
 }
 
 type WorkerPool struct {
 	register
-	db      *sql.DB
-	options poolConfig
+	db     *sql.DB
+	logger logger
+
+	schedulerSleepInterval time.Duration
+	reaperInterval         time.Duration
 
 	shutdown func()
 }
@@ -52,7 +53,7 @@ func (w *WorkerPool) Start() {
 	errChan := make(chan error)
 	errwg := &sync.WaitGroup{}
 	errwg.Add(1)
-	go errorRoutine(errChan, errwg)
+	go errorRoutine(errChan, w.logger, errwg)
 
 	wg := &sync.WaitGroup{}
 
@@ -62,12 +63,12 @@ func (w *WorkerPool) Start() {
 		// worker routines
 		for i := 0; i < config.instances; i++ {
 			wg.Add(1)
-			go workerRoutine(ctx, q, config.worker, w.options.schedulerSleepInterval, errChan, wg)
+			go workerRoutine(ctx, q, config.worker, w.schedulerSleepInterval, errChan, wg)
 		}
 
 		// reaper routine
 		wg.Add(1)
-		go reaperRoutine(ctx, q, w.options.reaperInterval, config.timeout, errChan, wg)
+		go reaperRoutine(ctx, q, w.reaperInterval, config.timeout, errChan, wg)
 	}
 
 	// wait for workers and reapers to stop
@@ -78,20 +79,21 @@ func (w *WorkerPool) Start() {
 	errwg.Wait()
 }
 
-func errorRoutine(errChan <-chan error, wg *sync.WaitGroup) {
+func errorRoutine(errChan <-chan error, logger logger, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for err := range errChan {
-		fmt.Printf("Error: %v\n", err)
+		logger.Log("msg", fmt.Sprintf("Error: %v\n", err))
 	}
 }
 
-func workerRoutine(ctx context.Context, queue queue, worker Worker, sleepInterval time.Duration, errChan chan<- error, wg *sync.WaitGroup) {
+func workerRoutine(ctx context.Context, queue Queue, worker Worker, sleepInterval time.Duration, errChan chan<- error, wg *sync.WaitGroup) {
 	defer wg.Done()
-	s := newScheduler(queue, worker, sleepInterval)
+	runner := newRunner(worker, queue.Update)
+	s := newScheduler(queue, runner, sleepInterval)
 	s.Run(ctx, errChan)
 }
 
-func reaperRoutine(ctx context.Context, queue requeuer, reaperInterval time.Duration, jobTimeout time.Duration, errChan chan<- error, wg *sync.WaitGroup) {
+func reaperRoutine(ctx context.Context, queue Requeuer, reaperInterval time.Duration, jobTimeout time.Duration, errChan chan<- error, wg *sync.WaitGroup) {
 	defer wg.Done()
 	r := newReaper(queue, reaperInterval, jobTimeout)
 	r.Run(ctx, errChan)

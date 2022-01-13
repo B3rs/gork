@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.mpi-internal.com/SCM-Italy/gork/jobs"
+	"github.com/B3rs/gork/jobs"
 )
 
 func NewDBClient(db *sql.DB) *DBClient {

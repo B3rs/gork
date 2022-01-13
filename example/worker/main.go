@@ -11,10 +11,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/B3rs/gork/jobs"
+	"github.com/B3rs/gork/web"
+	"github.com/B3rs/gork/workers"
 	_ "github.com/lib/pq"
-	"github.mpi-internal.com/SCM-Italy/gork/jobs"
-	"github.mpi-internal.com/SCM-Italy/gork/web"
-	"github.mpi-internal.com/SCM-Italy/gork/workers"
 )
 
 func main() {

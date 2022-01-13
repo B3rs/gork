@@ -3,7 +3,7 @@ package client
 import (
 	"time"
 
-	"github.mpi-internal.com/SCM-Italy/gork/jobs"
+	"github.com/B3rs/gork/jobs"
 )
 
 type OptionFunc func(j *jobs.Job) *jobs.Job

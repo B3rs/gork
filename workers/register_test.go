@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/B3rs/gork/jobs"
 	"github.com/stretchr/testify/assert"
-	"github.mpi-internal.com/SCM-Italy/gork/jobs"
 )
 
 type testWorker struct {

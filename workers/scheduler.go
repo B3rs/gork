@@ -4,25 +4,20 @@ import (
 	"context"
 	"time"
 
-	"github.mpi-internal.com/SCM-Italy/gork/jobs"
+	"github.com/B3rs/gork/jobs"
 )
 
-type queue interface {
-	Dequeue(ctx context.Context) (*jobs.Job, error)
-	Update(ctx context.Context, job *jobs.Job) error
-}
-
-func newScheduler(queue queue, w Worker, sleepInterval time.Duration) *scheduler {
+func newScheduler(queue Queue, runner Runner, sleepInterval time.Duration) *scheduler {
 	return &scheduler{
 		queue:         queue,
-		worker:        w,
+		runner:        runner,
 		sleepInterval: sleepInterval,
 	}
 }
 
 type scheduler struct {
-	queue         queue
-	worker        Worker
+	queue         Queue
+	runner        Runner
 	sleepInterval time.Duration
 }
 
@@ -43,8 +38,7 @@ func (s *scheduler) Run(ctx context.Context, errChan chan<- error) {
 				continue
 			}
 
-			ex := newExecutor(s.worker, s.queue.Update)
-			if err := ex.execute(context.Background(), job); err != nil {
+			if err := s.runner.Run(context.Background(), job); err != nil {
 				errChan <- err
 				continue
 			}

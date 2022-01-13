@@ -6,6 +6,7 @@ var (
 	defaultPoolOptions = []PoolOptionFunc{
 		WithSchedulerInterval(1 * time.Second),
 		WithReaperInterval(10 * time.Second),
+		WithLogger(&nopLogger{}),
 	}
 
 	defaultWorkerOptions = []WorkerOptionFunc{
@@ -13,19 +14,26 @@ var (
 	}
 )
 
-type PoolOptionFunc func(p poolConfig) poolConfig
+type PoolOptionFunc func(p *WorkerPool) *WorkerPool
 
 func WithSchedulerInterval(interval time.Duration) PoolOptionFunc {
-	return func(c poolConfig) poolConfig {
-		c.schedulerSleepInterval = interval
-		return c
+	return func(p *WorkerPool) *WorkerPool {
+		p.schedulerSleepInterval = interval
+		return p
 	}
 }
 
 func WithReaperInterval(interval time.Duration) PoolOptionFunc {
-	return func(c poolConfig) poolConfig {
-		c.reaperInterval = interval
-		return c
+	return func(p *WorkerPool) *WorkerPool {
+		p.reaperInterval = interval
+		return p
+	}
+}
+
+func WithLogger(l logger) PoolOptionFunc {
+	return func(p *WorkerPool) *WorkerPool {
+		p.logger = l
+		return p
 	}
 }
 

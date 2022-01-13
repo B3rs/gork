@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func newReaper(queue requeuer, every time.Duration, timeout time.Duration) *reaper {
+func newReaper(queue Requeuer, every time.Duration, timeout time.Duration) *reaper {
 	return &reaper{
 		queue:   queue,
 		ticker:  time.NewTicker(every),
@@ -13,12 +13,8 @@ func newReaper(queue requeuer, every time.Duration, timeout time.Duration) *reap
 	}
 }
 
-type requeuer interface {
-	RequeueTimedOutJobs(ctx context.Context, timeout time.Duration) error
-}
-
 type reaper struct {
-	queue   requeuer
+	queue   Requeuer
 	ticker  *time.Ticker
 	timeout time.Duration
 }
