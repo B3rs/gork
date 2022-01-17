@@ -33,7 +33,6 @@ func main() {
 	pool.RegisterWorkerFunc("decrease", Decrease, 2)                                          // or a simple function
 
 	sigc := make(chan os.Signal, 1)
-	done := make(chan bool, 1)
 	signal.Notify(sigc,
 		syscall.SIGHUP,
 		syscall.SIGINT,
@@ -43,11 +42,9 @@ func main() {
 		<-sigc
 		fmt.Println("\n\n\nReceived an interrupt, stopping services...\n\n")
 		pool.Stop()
-		done <- true
 	}()
 
 	pool.Start()
-	<-done
 }
 
 type args struct {

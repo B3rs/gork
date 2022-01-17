@@ -45,7 +45,7 @@ func main() {
 		panic(err)
 	}
 
-	txc := client.NewTxClient(tx)
+	txc := client.NewTx(tx)
 
 	if err := txc.Cancel(context.Background(), "increase_3"); err != nil {
 		panic(err)

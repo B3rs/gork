@@ -5,11 +5,12 @@ go 1.17
 replace github.com/B3rs/gork => ./../..
 
 require (
-	github.com/lib/pq v1.10.4
 	github.com/B3rs/gork v0.0.0-00010101000000-000000000000
+	github.com/lib/pq v1.10.4
 )
 
 require (
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/labstack/echo/v4 v4.6.2 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
