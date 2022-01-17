@@ -1,6 +1,6 @@
 package workers
 
-//go:generate mockgen -destination=./mocks_test.go -package=workers github.com/B3rs/gork/workers Requeuer,Queue,Runner,Worker,jobUpdater
+//go:generate mockgen -destination=./mocks_test.go -package=workers github.com/B3rs/gork/workers Queue,Worker,Handler,Spawner
 
 import (
 	"context"
@@ -13,20 +13,22 @@ var (
 	now = time.Now
 )
 
-// Requeuer re-queues timed out jobs.
-type Requeuer interface {
-	RequeueTimedOutJobs(ctx context.Context, timeout time.Duration) error
-}
-
 // Queue is a queue of jobs.
 type Queue interface {
 	Dequeue(ctx context.Context) (*jobs.Job, error)
 	Update(ctx context.Context, job *jobs.Job) error
+	RequeueTimedOutJobs(ctx context.Context, timeout time.Duration) error
 }
 
-// Runner runs a job in a worker, managing it's execution, errors and results.
-type Runner interface {
-	Run(ctx context.Context, job *jobs.Job) error
+// Handler handles job execution, errors and results.
+type Handler interface {
+	Handle(ctx context.Context, job *jobs.Job) error
+}
+
+type Spawner interface {
+	Spawn(runner)
+	Wait()
+	Shutdown()
 }
 
 // WorkerFunc is a function that can be used as a worker.

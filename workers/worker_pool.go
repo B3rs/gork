@@ -11,9 +11,16 @@ import (
 )
 
 func NewWorkerPool(db *sql.DB, opts ...PoolOptionFunc) *WorkerPool {
+	errChan := make(chan error)
+	ctx, cancel := context.WithCancel(context.Background())
 	w := &WorkerPool{
-		db:       db,
 		register: newRegister(),
+		spawner:  newSpawner(ctx, errChan),
+		errChan:  errChan,
+		shutdown: cancel,
+		queueFactory: func(name string) Queue {
+			return jobs.NewQueue(db, name)
+		},
 	}
 
 	options := append(defaultPoolOptions, opts...)
@@ -26,57 +33,48 @@ func NewWorkerPool(db *sql.DB, opts ...PoolOptionFunc) *WorkerPool {
 
 type WorkerPool struct {
 	register
-	db           *sql.DB
 	errorHandler func(error)
+	errChan      chan error
+	shutdown     func()
+	spawner      Spawner
+
+	queueFactory func(name string) Queue
 
 	schedulerSleepInterval time.Duration
 	reaperInterval         time.Duration
-
-	shutdown func()
 }
 
 // Stop the WorkerPool
 func (w WorkerPool) Stop() {
-	w.shutdown()
+	w.spawner.Shutdown()
 }
 
 // Start the WorkerPool
 func (w *WorkerPool) Start() {
 
-	ctx, cancel := context.WithCancel(context.Background())
-	w.shutdown = cancel
-
-	errChan := make(chan error)
 	errwg := &sync.WaitGroup{}
 	errwg.Add(1)
-	go errorRoutine(errChan, w.errorHandler, errwg)
-
-	wg := &sync.WaitGroup{}
+	go errorRoutine(w.errChan, w.errorHandler, errwg)
 
 	for name, config := range w.register.getWorkers() {
-		q := jobs.NewQueue(w.db, name)
+		q := w.queueFactory(name)
 
 		// worker routines
 		for i := 0; i < config.instances; i++ {
-			runner := newJobRunner(config.worker, q)
-			s := newScheduler(q, runner, w.schedulerSleepInterval)
-
-			wg.Add(1)
-			go routine(ctx, s, errChan, wg)
+			s := newDequeuer(q, config.worker, w.schedulerSleepInterval)
+			w.spawner.Spawn(s)
 		}
 
 		// reaper routine
 		r := newReaper(q, w.reaperInterval, config.timeout)
-
-		wg.Add(1)
-		go routine(ctx, r, errChan, wg)
+		w.spawner.Spawn(r)
 	}
 
 	// wait for workers and reapers to stop
-	wg.Wait()
+	w.spawner.Wait()
 
 	// wait for error routine to stop
-	close(errChan)
+	close(w.errChan)
 	errwg.Wait()
 }
 
@@ -85,15 +83,6 @@ func errorRoutine(errChan <-chan error, errorHandler func(error), wg *sync.WaitG
 	for err := range errChan {
 		errorHandler(err)
 	}
-}
-
-type runner interface {
-	Run(context.Context, chan<- error)
-}
-
-func routine(ctx context.Context, r runner, errChan chan<- error, wg *sync.WaitGroup) {
-	defer wg.Done()
-	r.Run(ctx, errChan)
 }
 
 func defaultErrorHandler(err error) {

@@ -17,7 +17,7 @@ func Test_reaper_Run(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	q := NewMockRequeuer(mockCtrl)
+	q := NewMockQueue(mockCtrl)
 
 	first := q.EXPECT().RequeueTimedOutJobs(gomock.Any(), gomock.Eq(7*time.Second)).Return(nil).Times(1)
 	q.EXPECT().RequeueTimedOutJobs(gomock.Any(), gomock.Eq(7*time.Second)).Return(errors.New("reaper error")).Times(1).After(first).Do(func(_, _ interface{}) { cancel() })

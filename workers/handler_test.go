@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_runner_Run(t *testing.T) {
+func Test_Handler_Handle(t *testing.T) {
 	tests := []struct {
 		name               string
 		job                *jobs.Job
@@ -100,11 +100,11 @@ func Test_runner_Run(t *testing.T) {
 			q := NewMockQueue(mockQueueCtrl)
 			tt.updaterExpectation(q)
 
-			r := &jobRunner{
+			r := &handler{
 				worker:  w,
 				updater: q,
 			}
-			err := r.Run(context.TODO(), tt.job)
+			err := r.Handle(context.TODO(), tt.job)
 			assert.Equal(t, tt.wantErr, err)
 		})
 	}

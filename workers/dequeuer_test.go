@@ -20,22 +20,25 @@ func Test_scheduler_Run(t *testing.T) {
 
 	runnerMockCtrl := gomock.NewController(t)
 	defer runnerMockCtrl.Finish()
-	r := NewMockRunner(runnerMockCtrl)
+	r := NewMockHandler(runnerMockCtrl)
 
 	dequeueCall := q.EXPECT().Dequeue(gomock.Any()).Return(&jobs.Job{ID: "job1"}, nil).Times(1)
-	runCall := r.EXPECT().Run(gomock.Any(), &jobs.Job{ID: "job1"}).Return(nil).Times(1).After(dequeueCall)
+	handleCall := r.EXPECT().Handle(gomock.Any(), &jobs.Job{ID: "job1"}).Return(nil).Times(1).After(dequeueCall)
 
-	dequeueCall2 := q.EXPECT().Dequeue(gomock.Any()).Return(&jobs.Job{ID: "job2"}, nil).Times(1).After(runCall)
-	runCall2 := r.EXPECT().Run(gomock.Any(), &jobs.Job{ID: "job2"}).Return(nil).Times(1).After(dequeueCall2).After(runCall)
+	dequeueCall2 := q.EXPECT().Dequeue(gomock.Any()).Return(&jobs.Job{ID: "job2"}, nil).Times(1).After(handleCall)
+	handleCall2 := r.EXPECT().Handle(gomock.Any(), &jobs.Job{ID: "job2"}).Return(nil).Times(1).After(dequeueCall2).After(handleCall)
 
-	dequeueCall3 := q.EXPECT().Dequeue(gomock.Any()).Return(&jobs.Job{ID: "job3"}, nil).Times(1).After(runCall2).Return(nil, jobs.ErrNoJobsAvailable)
+	dequeueCall3 := q.EXPECT().Dequeue(gomock.Any()).Return(&jobs.Job{ID: "job3"}, nil).Times(1).After(handleCall2).Return(nil, jobs.ErrNoJobsAvailable)
 
 	dequeueCall4 := q.EXPECT().Dequeue(gomock.Any()).Return(nil, errors.New("queue error")).Times(1).After(dequeueCall3)
 
 	dequeueCall5 := q.EXPECT().Dequeue(gomock.Any()).Return(&jobs.Job{ID: "job4"}, nil).Times(1).After(dequeueCall4)
-	r.EXPECT().Run(gomock.Any(), &jobs.Job{ID: "job4"}).Return(errors.New("run error")).Times(1).After(dequeueCall5).Do(func(_, _ interface{}) { cancel() })
+	r.EXPECT().Handle(gomock.Any(), &jobs.Job{ID: "job4"}).Return(errors.New("run error")).Times(1).After(dequeueCall5).Do(func(_, _ interface{}) { cancel() })
 
-	s := newScheduler(q, r, 0)
+	s := &dequeuer{
+		queue:   q,
+		handler: r,
+	}
 	s.Run(ctx, errsChan)
 
 	assert.Equal(t, errors.New("queue error"), <-errsChan)
