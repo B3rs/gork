@@ -6,20 +6,20 @@ import (
 	"github.com/B3rs/gork/jobs"
 )
 
-func newRunner(worker Worker, updater Queue) *runner {
-	return &runner{
+func newJobRunner(worker Worker, updater Queue) *jobRunner {
+	return &jobRunner{
 		worker:  worker,
 		updater: updater,
 	}
 }
 
-// runner runs a job in a worker, managing it's execution, errors and results.
-type runner struct {
+// jobRunner runs a job in a worker, managing it's execution, errors and results.
+type jobRunner struct {
 	worker  Worker
 	updater Queue
 }
 
-func (r *runner) Run(ctx context.Context, job *jobs.Job) error {
+func (r *jobRunner) Run(ctx context.Context, job *jobs.Job) error {
 
 	// explicity copy the job to avoid user provided function from modifying a job
 	res, err := r.worker.Execute(ctx, *job)

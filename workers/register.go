@@ -33,7 +33,6 @@ func (r register) RegisterWorker(queueName string, worker Worker, instances int,
 
 // RegisterWorkerFunc registers a worker function with the given queue name.
 func (r register) RegisterWorkerFunc(queueName string, worker WorkerFunc, instances int, opts ...WorkerOptionFunc) {
-
 	r.RegisterWorker(queueName, funcWorker{f: worker}, instances, opts...)
 }
 

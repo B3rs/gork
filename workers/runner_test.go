@@ -100,7 +100,7 @@ func Test_runner_Run(t *testing.T) {
 			q := NewMockQueue(mockQueueCtrl)
 			tt.updaterExpectation(q)
 
-			r := &runner{
+			r := &jobRunner{
 				worker:  w,
 				updater: q,
 			}
