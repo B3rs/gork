@@ -1,15 +1,11 @@
-package jobs
+package db
 
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"time"
-)
 
-var (
-	// ErrNoJobsAvailable is returned when no jobs are available
-	ErrNoJobsAvailable = errors.New("no jobs available")
+	"github.com/B3rs/gork/jobs"
 )
 
 func NewQueue(db *sql.DB, name string) *Queue {
@@ -24,7 +20,7 @@ type Queue struct {
 	name string
 }
 
-func (q *Queue) Dequeue(ctx context.Context) (*Job, error) {
+func (q *Queue) Dequeue(ctx context.Context) (*jobs.Job, error) {
 	job := &jobRow{}
 
 	tx, err := q.db.Begin()
@@ -50,22 +46,22 @@ func (q *Queue) Dequeue(ctx context.Context) (*Job, error) {
 			FOR UPDATE SKIP LOCKED
 			LIMIT 1 
 		)
-	RETURNING ` + job.stringColumns()
+	RETURNING ` + job.StringColumns()
 
 	err = tx.QueryRowContext(
 		ctx,
 		query,
-		StatusInitialized,
-		StatusScheduled,
+		jobs.StatusInitialized,
+		jobs.StatusScheduled,
 		q.name,
-	).Scan(job.scanDestinations()...)
+	).Scan(job.ScanDestinations()...)
 
 	if err == sql.ErrNoRows {
 		if err := tx.Commit(); err != nil {
 			return nil, err
 		}
 
-		return nil, ErrNoJobsAvailable
+		return nil, jobs.ErrNoJobsAvailable
 	}
 	if err != nil {
 		return nil, err
@@ -75,11 +71,11 @@ func (q *Queue) Dequeue(ctx context.Context) (*Job, error) {
 		return nil, err
 	}
 
-	return job.toJob(), nil
+	return job.ToJob(), nil
 }
 
 // Update the job in the database
-func (q *Queue) Update(ctx context.Context, job *Job) error {
+func (q *Queue) Update(ctx context.Context, job *jobs.Job) error {
 
 	tx, err := q.db.Begin()
 	if err != nil {
@@ -132,9 +128,9 @@ func (q *Queue) RequeueTimedOutJobs(ctx context.Context, timeout time.Duration) 
 	_, err = tx.ExecContext(
 		ctx,
 		query,
-		StatusScheduled,
+		jobs.StatusScheduled,
 		time.Now().Add(-timeout),
-		StatusInitialized,
+		jobs.StatusInitialized,
 		q.name,
 	)
 

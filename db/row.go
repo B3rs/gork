@@ -1,9 +1,11 @@
-package jobs
+package db
 
 import (
 	"database/sql"
 	"strings"
 	"time"
+
+	"github.com/B3rs/gork/jobs"
 )
 
 type jobRow struct {
@@ -14,15 +16,15 @@ type jobRow struct {
 	Result      []byte         `json:"result"`
 	LastError   sql.NullString `json:"last_error"`
 	RetryCount  int            `json:"retry_count"`
-	Options     Options        `json:"options"`
+	Options     jobs.Options   `json:"options"`
 	ScheduledAt sql.NullTime   `json:"scheduled_at"`
 	StartedAt   sql.NullTime   `json:"started_at"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
-func (j jobRow) toJob() *Job {
-	return &Job{
+func (j jobRow) ToJob() *jobs.Job {
+	return &jobs.Job{
 		ID:          j.ID,
 		Queue:       j.Queue,
 		Status:      j.Status,
@@ -38,7 +40,7 @@ func (j jobRow) toJob() *Job {
 	}
 }
 
-func (j jobRow) columns() []string {
+func (j jobRow) Columns() []string {
 	return []string{
 		"id",
 		"status",
@@ -54,11 +56,11 @@ func (j jobRow) columns() []string {
 	}
 }
 
-func (j jobRow) stringColumns() string {
-	return strings.Join(j.columns(), ", ")
+func (j jobRow) StringColumns() string {
+	return strings.Join(j.Columns(), ", ")
 }
 
-func (j *jobRow) scanDestinations() []interface{} {
+func (j *jobRow) ScanDestinations() []interface{} {
 	return []interface{}{
 		&j.ID,
 		&j.Status,

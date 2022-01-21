@@ -11,6 +11,7 @@ var (
 
 	defaultWorkerOptions = []WorkerOptionFunc{
 		WithTimeout(1 * time.Minute),
+		WithInstances(1),
 	}
 )
 
@@ -42,6 +43,13 @@ type WorkerOptionFunc func(workerConfig) workerConfig
 func WithTimeout(d time.Duration) WorkerOptionFunc {
 	return func(w workerConfig) workerConfig {
 		w.timeout = d
+		return w
+	}
+}
+
+func WithInstances(i int) WorkerOptionFunc {
+	return func(w workerConfig) workerConfig {
+		w.instances = i
 		return w
 	}
 }

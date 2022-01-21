@@ -1,7 +1,9 @@
 # gork
+
 golang "postgresql backed" worker library
 
 ## Introduction
+
 Did you ever dream of executing code at a given time?
 Did you ever dream about calling a third party but not blocking kafka consumers because of some broken constraint?
 Did you have any concerns about "transactionality" in calling third party services?
@@ -13,13 +15,16 @@ gork uses postgresql tables to create a queue of jobs that can be executed, re-e
 see examples to see it in action.
 
 ### TODO
+
 - [ ] proper documentation
-- [ ] database indexes tuning
+- [x] database indexes tuning
 - [x] improve code structure
 - [ ] unit tests
 - [ ] goconvey tests
-- [ ] admin ui
+- [x] admin ui
 - [ ] metrics and alerts
 - [x] job retry
 - [ ] failure notifications (investigate sentry)
 - [ ] performance benchmarks
+- [ ] workers statistics
+- [ ] queue statistics

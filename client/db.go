@@ -11,7 +11,7 @@ func NewDBClient(db *sql.DB) *DBClient {
 	return &DBClient{
 		db: db,
 		txClientFactory: func(tx *sql.Tx) Client {
-			return NewTxClient(tx)
+			return NewTx(tx)
 		},
 	}
 }
@@ -63,14 +63,14 @@ func (c DBClient) ForceRetry(ctx context.Context, id string) error {
 }
 
 // GetAll returns jobs starting from the given offset
-func (c DBClient) GetAll(ctx context.Context, page, limit int) ([]*jobs.Job, error) {
+func (c DBClient) GetAll(ctx context.Context, page, limit int, search string) ([]*jobs.Job, error) {
 	tx, err := c.db.Begin()
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	jobs, err := c.txClientFactory(tx).GetAll(ctx, page, limit)
+	jobs, err := c.txClientFactory(tx).GetAll(ctx, page, limit, search)
 	if err != nil {
 		return nil, err
 	}

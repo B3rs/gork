@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/B3rs/gork/jobs"
+	"github.com/B3rs/gork/db"
 )
 
-func NewWorkerPool(db *sql.DB, opts ...PoolOptionFunc) *WorkerPool {
+func NewWorkerPool(database *sql.DB, opts ...PoolOptionFunc) *WorkerPool {
 	errChan := make(chan error)
 	ctx, cancel := context.WithCancel(context.Background())
 	w := &WorkerPool{
@@ -19,7 +19,7 @@ func NewWorkerPool(db *sql.DB, opts ...PoolOptionFunc) *WorkerPool {
 		errChan:  errChan,
 		shutdown: cancel,
 		queueFactory: func(name string) Queue {
-			return jobs.NewQueue(db, name)
+			return db.NewQueue(database, name)
 		},
 	}
 

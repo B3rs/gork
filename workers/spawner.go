@@ -2,7 +2,6 @@ package workers
 
 import (
 	"context"
-	"fmt"
 	"sync"
 )
 
@@ -34,7 +33,6 @@ func (s spawner) Spawn(r runner) {
 	s.wg.Add(1)
 	go func() {
 		r.Run(s.ctx, s.errChan)
-		fmt.Println("despawn")
 		s.wg.Done()
 	}()
 }

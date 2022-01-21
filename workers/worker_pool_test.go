@@ -44,8 +44,8 @@ func TestWorkerPool_Start(t *testing.T) {
 		errorHandler: errHandler.Handle,
 	}
 
-	w.RegisterWorkerFunc("test", nil, 3)
-	w.RegisterWorkerFunc("test2", nil, 2)
+	w.RegisterWorkerFunc("test", nil, WithInstances(3))
+	w.RegisterWorkerFunc("test2", nil, WithInstances(2))
 
 	// 3 workers + 1 reaper and 2 workers + 1 reaper
 	s.EXPECT().Spawn(gomock.Any()).Times(7)

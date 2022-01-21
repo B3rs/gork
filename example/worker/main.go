@@ -29,8 +29,8 @@ func main() {
 	}()
 
 	pool := workers.NewWorkerPool(db)
-	pool.RegisterWorker("increase", IncreaseWorker{}, 3, workers.WithTimeout(10*time.Second)) // worker can be a struct method (so you can inject dependencies)
-	pool.RegisterWorkerFunc("decrease", Decrease, 2)                                          // or a simple function
+	pool.RegisterWorker("increase", IncreaseWorker{}, workers.WithInstances(3), workers.WithTimeout(10*time.Second)) // worker can be a struct method (so you can inject dependencies)
+	pool.RegisterWorkerFunc("decrease", Decrease, workers.WithInstances(2))                                          // or a simple function
 
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc,
@@ -57,8 +57,8 @@ type IncreaseWorker struct {
 func (w IncreaseWorker) Execute(ctx context.Context, job jobs.Job) (interface{}, error) {
 
 	fmt.Println("start increase job", job.ID, string(job.Arguments))
-	a := args{}
 
+	a := args{}
 	if err := job.ParseArguments(&a); err != nil {
 		return nil, err
 	}

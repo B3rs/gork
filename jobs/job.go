@@ -3,6 +3,7 @@ package jobs
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"time"
 )
 
@@ -19,20 +20,27 @@ const (
 	StatusInitialized = "initialized"
 )
 
+var (
+	// ErrNoJobsAvailable is returned when no jobs are available
+	ErrNoJobsAvailable = errors.New("no jobs available")
+	// ErrJobNotFound is returned when no job is found
+	ErrJobNotFound = errors.New("job not found")
+)
+
 // Job could use generics for params and result
 type Job struct {
-	ID          string    `json:"id"`
-	Queue       string    `json:"queue"`
-	Status      string    `json:"status"`
-	Arguments   []byte    `json:"arguments"`
-	Result      []byte    `json:"result"`
-	LastError   string    `json:"last_error"`
-	RetryCount  int       `json:"retry_count"`
-	Options     Options   `json:"options"`
-	ScheduledAt time.Time `json:"scheduled_at"`
-	StartedAt   time.Time `json:"started_at"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          string          `json:"id"`
+	Queue       string          `json:"queue"`
+	Status      string          `json:"status"`
+	Arguments   json.RawMessage `json:"arguments"`
+	Result      json.RawMessage `json:"result"`
+	LastError   string          `json:"last_error"`
+	RetryCount  int             `json:"retry_count"`
+	Options     Options         `json:"options"`
+	ScheduledAt time.Time       `json:"scheduled_at,omitempty"`
+	StartedAt   time.Time       `json:"started_at"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
 }
 
 func (j Job) ParseArguments(dest interface{}) error {

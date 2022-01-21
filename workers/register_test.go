@@ -20,7 +20,7 @@ func (w testWorker) Execute(context.Context, jobs.Job) (interface{}, error) {
 func Test_register_RegisterWorker(t *testing.T) {
 
 	r := newRegister()
-	r.RegisterWorker("queue", testWorker{res: "best worker"}, 7)
+	r.RegisterWorker("queue", testWorker{res: "best worker"}, WithInstances(7))
 
 	assert.Len(t, r.getWorkers(), 1)
 
@@ -35,7 +35,7 @@ func Test_register_RegisterWorkerFunc(t *testing.T) {
 	r := newRegister()
 	r.RegisterWorkerFunc("queue", func(ctx context.Context, job jobs.Job) (interface{}, error) {
 		return "best worker", nil
-	}, 7)
+	}, WithInstances(7))
 
 	assert.Len(t, r.getWorkers(), 1)
 
