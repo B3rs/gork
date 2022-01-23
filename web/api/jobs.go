@@ -19,7 +19,7 @@ type JobsAPI struct {
 }
 
 type jobsList struct {
-	Jobs []*jobs.Job `json:"jobs"`
+	Jobs []jobs.Job `json:"jobs"`
 }
 
 func (j JobsAPI) ListHandler(c echo.Context) error {

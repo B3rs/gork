@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"database/sql"
 	"embed"
 	"io/fs"
@@ -24,10 +25,16 @@ func getUIHandler(fsys fs.FS) (http.Handler, error) {
 	return http.FileServer(http.FS(buildDir)), nil
 }
 
-func Start(db *sql.DB, addr string) error {
+type Server struct {
+	e *echo.Echo
+}
 
-	e := echo.New()
-	e.Use(middleware.CORSWithConfig(
+func (s *Server) Start(db *sql.DB, addr string) error {
+
+	s.e = echo.New()
+
+	s.e.HideBanner = true
+	s.e.Use(middleware.CORSWithConfig(
 		middleware.CORSConfig{
 			AllowOrigins: []string{"*"},
 		},
@@ -39,19 +46,24 @@ func Start(db *sql.DB, addr string) error {
 		if err != nil {
 			return err
 		}
-		e.GET("/*", echo.WrapHandler(uiHandler))
+		s.e.GET("/*", echo.WrapHandler(uiHandler))
+		s.e.GET("/jobs/*", echo.WrapHandler(uiHandler))
 	}
 
 	// API routes
 	{
 		jobs := api.NewJobsAPI(db)
 
-		v1 := e.Group("/api/v1")
+		v1 := s.e.Group("/api/v1")
 		v1.POST("/jobs/:id/retry", jobs.RetryHandler)
 		v1.GET("/jobs/:id", jobs.GetHandler)
 		v1.DELETE("/jobs/:id", jobs.CancelHandler)
 		v1.GET("/jobs", jobs.ListHandler)
 	}
 
-	return e.Start(addr)
+	return s.e.Start(addr)
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	return s.e.Shutdown(ctx)
 }

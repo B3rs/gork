@@ -37,10 +37,10 @@ func (m *MockQueue) EXPECT() *MockQueueMockRecorder {
 }
 
 // Dequeue mocks base method.
-func (m *MockQueue) Dequeue(arg0 context.Context) (*jobs.Job, error) {
+func (m *MockQueue) Dequeue(arg0 context.Context) (jobs.Job, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Dequeue", arg0)
-	ret0, _ := ret[0].(*jobs.Job)
+	ret0, _ := ret[0].(jobs.Job)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -66,7 +66,7 @@ func (mr *MockQueueMockRecorder) RequeueTimedOutJobs(arg0, arg1 interface{}) *go
 }
 
 // Update mocks base method.
-func (m *MockQueue) Update(arg0 context.Context, arg1 *jobs.Job) error {
+func (m *MockQueue) Update(arg0 context.Context, arg1 jobs.Job) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -141,7 +141,7 @@ func (m *MockHandler) EXPECT() *MockHandlerMockRecorder {
 }
 
 // Handle mocks base method.
-func (m *MockHandler) Handle(arg0 context.Context, arg1 *jobs.Job) error {
+func (m *MockHandler) Handle(arg0 context.Context, arg1 jobs.Job) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Handle", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -175,6 +175,20 @@ func NewMockSpawner(ctrl *gomock.Controller) *MockSpawner {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSpawner) EXPECT() *MockSpawnerMockRecorder {
 	return m.recorder
+}
+
+// Done mocks base method.
+func (m *MockSpawner) Done() <-chan struct{} {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Done")
+	ret0, _ := ret[0].(<-chan struct{})
+	return ret0
+}
+
+// Done indicates an expected call of Done.
+func (mr *MockSpawnerMockRecorder) Done() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Done", reflect.TypeOf((*MockSpawner)(nil).Done))
 }
 
 // Shutdown mocks base method.

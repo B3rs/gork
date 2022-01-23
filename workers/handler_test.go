@@ -15,35 +15,35 @@ import (
 func Test_Handler_Handle(t *testing.T) {
 	tests := []struct {
 		name               string
-		job                *jobs.Job
+		job                jobs.Job
 		workerExpectation  func(w *MockWorker)
 		updaterExpectation func(u *MockQueue)
 		wantErr            error
 	}{
 		{
 			name: "should set status completed and set a result if job execution succeeds",
-			job:  &jobs.Job{ID: "1"},
+			job:  jobs.Job{ID: "1"},
 			workerExpectation: func(w *MockWorker) {
 				w.EXPECT().Execute(gomock.Any(), gomock.Eq(jobs.Job{ID: "1"})).Return("resultstring", nil)
 			},
 			updaterExpectation: func(u *MockQueue) {
 				b, _ := json.Marshal("resultstring")
-				u.EXPECT().Update(gomock.Any(), gomock.Eq(&jobs.Job{ID: "1", Status: jobs.StatusCompleted, Result: b}))
+				u.EXPECT().Update(gomock.Any(), gomock.Eq(jobs.Job{ID: "1", Status: jobs.StatusCompleted, Result: b}))
 			},
 		},
 		{
 			name: "should set error if result is not serializable",
-			job:  &jobs.Job{ID: "1"},
+			job:  jobs.Job{ID: "1"},
 			workerExpectation: func(w *MockWorker) {
 				w.EXPECT().Execute(gomock.Any(), gomock.Eq(jobs.Job{ID: "1"})).Return(map[string]interface{}{"foo": make(chan int)}, nil)
 			},
 			updaterExpectation: func(u *MockQueue) {
-				u.EXPECT().Update(gomock.Any(), gomock.Eq(&jobs.Job{ID: "1", Status: jobs.StatusCompleted, LastError: "json: unsupported type: chan int"}))
+				u.EXPECT().Update(gomock.Any(), gomock.Eq(jobs.Job{ID: "1", Status: jobs.StatusCompleted, LastError: "json: unsupported type: chan int"}))
 			},
 		},
 		{
 			name: "should retry if job fails and retry is available",
-			job:  &jobs.Job{ID: "1", Options: jobs.Options{RetryInterval: time.Second, MaxRetries: 1}},
+			job:  jobs.Job{ID: "1", Options: jobs.Options{RetryInterval: time.Second, MaxRetries: 1}},
 			workerExpectation: func(w *MockWorker) {
 				w.EXPECT().Execute(gomock.Any(), gomock.Eq(jobs.Job{
 					ID:      "1",
@@ -54,7 +54,7 @@ func Test_Handler_Handle(t *testing.T) {
 				now = func() time.Time {
 					return time.Time{}
 				}
-				u.EXPECT().Update(gomock.Any(), gomock.Eq(&jobs.Job{
+				u.EXPECT().Update(gomock.Any(), gomock.Eq(jobs.Job{
 					ID:          "1",
 					Options:     jobs.Options{RetryInterval: time.Second, MaxRetries: 1},
 					RetryCount:  1,
@@ -66,7 +66,7 @@ func Test_Handler_Handle(t *testing.T) {
 		},
 		{
 			name: "should fail if job fails and retry is not available",
-			job:  &jobs.Job{ID: "1", RetryCount: 1, Options: jobs.Options{RetryInterval: time.Second, MaxRetries: 1}},
+			job:  jobs.Job{ID: "1", RetryCount: 1, Options: jobs.Options{RetryInterval: time.Second, MaxRetries: 1}},
 			workerExpectation: func(w *MockWorker) {
 				w.EXPECT().Execute(gomock.Any(), gomock.Eq(jobs.Job{
 					ID:         "1",
@@ -78,7 +78,7 @@ func Test_Handler_Handle(t *testing.T) {
 				now = func() time.Time {
 					return time.Time{}
 				}
-				u.EXPECT().Update(gomock.Any(), gomock.Eq(&jobs.Job{
+				u.EXPECT().Update(gomock.Any(), gomock.Eq(jobs.Job{
 					ID:         "1",
 					Options:    jobs.Options{RetryInterval: time.Second, MaxRetries: 1},
 					RetryCount: 1,

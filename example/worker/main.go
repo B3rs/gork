@@ -7,12 +7,9 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/B3rs/gork/jobs"
-	"github.com/B3rs/gork/web"
 	"github.com/B3rs/gork/workers"
 	_ "github.com/lib/pq"
 )
@@ -24,27 +21,16 @@ func main() {
 		panic(err)
 	}
 
-	go func() {
-		web.Start(db, ":8080")
-	}()
-
-	pool := workers.NewWorkerPool(db)
+	pool := workers.NewWorkerPool(db,
+		workers.WithGracefulShutdown(),
+		workers.WithAdminUI(db, ":8080"),
+	)
 	pool.RegisterWorker("increase", IncreaseWorker{}, workers.WithInstances(3), workers.WithTimeout(10*time.Second)) // worker can be a struct method (so you can inject dependencies)
 	pool.RegisterWorkerFunc("decrease", Decrease, workers.WithInstances(2))                                          // or a simple function
 
-	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT)
-	go func() {
-		<-sigc
-		fmt.Println("\n\n\nReceived an interrupt, stopping services...\n\n")
-		pool.Stop()
-	}()
-
-	pool.Start()
+	if err := pool.Start(); err != nil {
+		panic(err)
+	}
 }
 
 type args struct {

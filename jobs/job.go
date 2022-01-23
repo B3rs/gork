@@ -21,8 +21,8 @@ const (
 )
 
 var (
-	// ErrNoJobsAvailable is returned when no jobs are available
-	ErrNoJobsAvailable = errors.New("no jobs available")
+	// // ErrNoJobsAvailable is returned when no jobs are available
+	// ErrNoJobsAvailable = errors.New("no jobs available")
 	// ErrJobNotFound is returned when no job is found
 	ErrJobNotFound = errors.New("job not found")
 )
@@ -51,46 +51,49 @@ func (j Job) ShouldRetry() bool {
 	return j.RetryCount < j.Options.MaxRetries
 }
 
-func (j *Job) ScheduleRetry(t time.Time) {
+func (j Job) ScheduleRetry(t time.Time) Job {
 	j.RetryCount++
 	j.ScheduledAt = t
 	j.Status = StatusScheduled
+	return j
 }
 
 // SetStatus sets the status of the job
-func (j *Job) SetStatus(status string) {
+func (j Job) SetStatus(status string) Job {
 	j.Status = status
+	return j
 }
 
 // SetLastError sets the last error of the job
-func (j *Job) SetLastError(err error) {
+func (j Job) SetLastError(err error) Job {
 	j.LastError = err.Error()
+	return j
 }
 
 // SetResult sets the result of the job
-func (j *Job) SetResult(res interface{}) error {
+func (j Job) SetResult(res interface{}) (Job, error) {
 	if res == nil {
-		return nil
+		return j, nil
 	}
 	encoded, err := json.Marshal(res)
 	if err != nil {
-		return err
+		return j, err
 	}
 	j.Result = encoded
-	return nil
+	return j, nil
 }
 
 // SetArguments sets the arguments of the job
-func (j *Job) SetArguments(args interface{}) error {
+func (j Job) SetArguments(args interface{}) (Job, error) {
 	if args == nil {
-		return nil
+		return j, nil
 	}
 	encoded, err := json.Marshal(args)
 	if err != nil {
-		return err
+		return j, err
 	}
 	j.Arguments = encoded
-	return nil
+	return j, nil
 }
 
 type Options struct {

@@ -30,7 +30,7 @@ func (d *dequeuer) Run(ctx context.Context, errChan chan<- error) {
 		default:
 
 			job, err := d.queue.Dequeue(ctx)
-			if err == jobs.ErrNoJobsAvailable {
+			if err == jobs.ErrJobNotFound {
 				time.Sleep(d.sleepInterval)
 				continue
 			}

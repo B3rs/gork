@@ -12,8 +12,8 @@ type Client interface {
 	Schedule(ctx context.Context, id string, queueName string, arguments interface{}, options ...OptionFunc) error
 	Cancel(ctx context.Context, id string) error
 	ForceRetry(ctx context.Context, id string) error
-	GetAll(ctx context.Context, page, limit int, search string) ([]*jobs.Job, error)
-	Get(ctx context.Context, id string) (*jobs.Job, error)
+	GetAll(ctx context.Context, page, limit int, search string) ([]jobs.Job, error)
+	Get(ctx context.Context, id string) (jobs.Job, error)
 }
 
 func NewTx(tx *sql.Tx) Client {
@@ -26,13 +26,14 @@ type Tx struct {
 
 // Schedule schedules a job in the queue to be executed as soon as possible
 func (c Tx) Schedule(ctx context.Context, id string, queueName string, arguments interface{}, options ...OptionFunc) error {
-	job := &jobs.Job{
+	job := jobs.Job{
 		ID:     id,
 		Queue:  queueName,
 		Status: jobs.StatusScheduled,
 	}
 
-	if err := job.SetArguments(arguments); err != nil {
+	var err error
+	if job, err = job.SetArguments(arguments); err != nil {
 		return err
 	}
 
@@ -50,15 +51,15 @@ func (c Tx) Cancel(ctx context.Context, id string) error {
 
 // ForceRetry reschedules a job in the queue to be executed immediately
 func (c Tx) ForceRetry(ctx context.Context, id string) error {
-	return c.tx.ScheduleImmediately(ctx, id)
+	return c.tx.ScheduleNow(ctx, id)
 }
 
 // GetAll returns jobs starting from the given offset
-func (c Tx) GetAll(ctx context.Context, page, limit int, search string) ([]*jobs.Job, error) {
-	return c.tx.List(ctx, limit, page*limit, search)
+func (c Tx) GetAll(ctx context.Context, page, limit int, search string) ([]jobs.Job, error) {
+	return c.tx.Search(ctx, limit, page*limit, search)
 }
 
 // Get returns job with the given id
-func (c Tx) Get(ctx context.Context, id string) (*jobs.Job, error) {
+func (c Tx) Get(ctx context.Context, id string) (jobs.Job, error) {
 	return c.tx.Get(ctx, id)
 }

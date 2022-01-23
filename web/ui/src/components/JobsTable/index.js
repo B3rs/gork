@@ -8,9 +8,11 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
+import Link from '@mui/material/Link';
 
 import { fetchJobs, retryJob } from '../../api/jobs/';
 import ColoredStatus from './colored_status';
+import { Link as RouterLink } from 'react-router-dom';
 
 function JobsTable(props) {
 
@@ -58,10 +60,11 @@ function JobsTable(props) {
               <TableRow
                 key={row.id}
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                onClick={()=>props.onJobClick(row)}
               >
                 <TableCell component="th" scope="row">
-                  {row.id}
+                  <Link component={RouterLink} to={`/jobs/${row.id}`} state={{job: row}}>
+                    {row.id}
+                  </Link>
                 </TableCell>
                 <TableCell align="right">{row.queue}</TableCell>
                 <TableCell align="right">

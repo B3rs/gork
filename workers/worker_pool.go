@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/B3rs/gork/db"
+	"golang.org/x/sync/errgroup"
 )
 
 func NewWorkerPool(database *sql.DB, opts ...PoolOptionFunc) *WorkerPool {
@@ -38,6 +39,8 @@ type WorkerPool struct {
 	shutdown     func()
 	spawner      Spawner
 
+	coRoutines []func() error
+
 	queueFactory func(name string) Queue
 
 	schedulerSleepInterval time.Duration
@@ -50,7 +53,21 @@ func (w WorkerPool) Stop() {
 }
 
 // Start the WorkerPool
-func (w *WorkerPool) Start() {
+func (w *WorkerPool) Start() error {
+	g := new(errgroup.Group)
+
+	for _, f := range w.coRoutines {
+		g.Go(f)
+	}
+
+	g.Go(func() error {
+		w.start()
+		return nil
+	})
+	return g.Wait()
+}
+
+func (w *WorkerPool) start() {
 
 	errwg := &sync.WaitGroup{}
 	errwg.Add(1)

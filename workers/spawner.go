@@ -44,3 +44,12 @@ func (s spawner) Wait() {
 func (s spawner) Shutdown() {
 	s.shutdown()
 }
+
+func (s spawner) Done() <-chan struct{} {
+	c := make(chan struct{})
+	go func() {
+		<-s.ctx.Done()
+		c <- struct{}{}
+	}()
+	return c
+}

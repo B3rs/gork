@@ -15,20 +15,21 @@ var (
 
 // Queue is a queue of jobs.
 type Queue interface {
-	Dequeue(ctx context.Context) (*jobs.Job, error)
-	Update(ctx context.Context, job *jobs.Job) error
+	Dequeue(ctx context.Context) (jobs.Job, error)
+	Update(ctx context.Context, job jobs.Job) error
 	RequeueTimedOutJobs(ctx context.Context, timeout time.Duration) error
 }
 
 // Handler handles job execution, errors and results.
 type Handler interface {
-	Handle(ctx context.Context, job *jobs.Job) error
+	Handle(ctx context.Context, job jobs.Job) error
 }
 
 type Spawner interface {
 	Spawn(runner)
 	Wait()
 	Shutdown()
+	Done() <-chan struct{}
 }
 
 // WorkerFunc is a function that can be used as a worker.

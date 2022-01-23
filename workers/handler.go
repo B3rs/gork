@@ -20,25 +20,25 @@ type handler struct {
 }
 
 // Handle a job execution
-func (h *handler) Handle(ctx context.Context, job *jobs.Job) error {
+func (h *handler) Handle(ctx context.Context, job jobs.Job) error {
 
-	// explicity copy the job to avoid user provided function from modifying a job
-	res, err := h.worker.Execute(ctx, *job)
+	res, err := h.worker.Execute(ctx, job)
 	if err != nil {
 		if job.ShouldRetry() {
 			retryAt := now().Add(job.Options.RetryInterval)
-			job.ScheduleRetry(retryAt)
+			job = job.ScheduleRetry(retryAt)
 		} else {
-			job.SetStatus(jobs.StatusFailed)
+			job = job.SetStatus(jobs.StatusFailed)
 		}
-		job.SetLastError(err)
 
+		job = job.SetLastError(err)
 		return h.updater.Update(ctx, job)
 	}
 
-	job.SetStatus(jobs.StatusCompleted)
-	if err := job.SetResult(res); err != nil {
-		job.SetLastError(err)
+	job = job.SetStatus(jobs.StatusCompleted)
+
+	if job, err = job.SetResult(res); err != nil {
+		job = job.SetLastError(err)
 	}
 
 	return h.updater.Update(ctx, job)

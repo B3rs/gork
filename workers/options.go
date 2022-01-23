@@ -1,6 +1,16 @@
 package workers
 
-import "time"
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/B3rs/gork/web"
+)
 
 var (
 	defaultPoolOptions = []PoolOptionFunc{
@@ -34,6 +44,64 @@ func WithReaperInterval(interval time.Duration) PoolOptionFunc {
 func WithErrorHandler(f func(error)) PoolOptionFunc {
 	return func(p *WorkerPool) *WorkerPool {
 		p.errorHandler = f
+		return p
+	}
+}
+
+func WithGracefulShutdown() PoolOptionFunc {
+	return func(p *WorkerPool) *WorkerPool {
+		routine := func() error {
+			sigc := make(chan os.Signal, 1)
+			signal.Notify(sigc,
+				syscall.SIGHUP,
+				syscall.SIGINT,
+				syscall.SIGTERM,
+				syscall.SIGQUIT)
+
+			select {
+			case <-sigc:
+			case <-p.spawner.Done():
+			}
+
+			fmt.Printf("\n\n\nReceived an interrupt, stopping services...\n\n")
+
+			p.Stop()
+			return nil
+		}
+
+		p.coRoutines = append(p.coRoutines, routine)
+		return p
+	}
+}
+
+func WithAdminUI(db *sql.DB, addr string) PoolOptionFunc {
+	return func(p *WorkerPool) *WorkerPool {
+		routine := func() error {
+			s := &web.Server{}
+			// Start server
+			go func() {
+
+				quit := make(chan os.Signal, 1)
+				signal.Notify(quit,
+					syscall.SIGHUP,
+					syscall.SIGINT,
+					syscall.SIGTERM,
+					syscall.SIGQUIT)
+
+				select {
+				case <-quit:
+				case <-p.spawner.Done():
+				}
+
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+				_ = s.Shutdown(ctx)
+
+			}()
+			return s.Start(db, addr)
+		}
+
+		p.coRoutines = append(p.coRoutines, routine)
 		return p
 	}
 }

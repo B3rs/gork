@@ -63,7 +63,7 @@ func (c DBClient) ForceRetry(ctx context.Context, id string) error {
 }
 
 // GetAll returns jobs starting from the given offset
-func (c DBClient) GetAll(ctx context.Context, page, limit int, search string) ([]*jobs.Job, error) {
+func (c DBClient) GetAll(ctx context.Context, page, limit int, search string) ([]jobs.Job, error) {
 	tx, err := c.db.Begin()
 	if err != nil {
 		return nil, err
@@ -79,17 +79,17 @@ func (c DBClient) GetAll(ctx context.Context, page, limit int, search string) ([
 }
 
 // Get returns job with the given id
-func (c DBClient) Get(ctx context.Context, id string) (*jobs.Job, error) {
+func (c DBClient) Get(ctx context.Context, id string) (jobs.Job, error) {
 	tx, err := c.db.Begin()
 	if err != nil {
-		return nil, err
+		return jobs.Job{}, err
 	}
 	defer tx.Rollback()
 
-	jobs, err := c.txClientFactory(tx).Get(ctx, id)
+	job, err := c.txClientFactory(tx).Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return jobs.Job{}, err
 	}
 
-	return jobs, tx.Commit()
+	return job, tx.Commit()
 }

@@ -8,7 +8,25 @@ import (
 	"github.com/B3rs/gork/jobs"
 )
 
-type jobRow struct {
+var (
+	jobColumns = []string{
+		"id",
+		"status",
+		"queue",
+		"arguments",
+		"result",
+		"last_error",
+		"retry_count",
+		"options",
+		"created_at",
+		"updated_at",
+		"scheduled_at",
+	}
+
+	jobStringColumns = strings.Join(jobColumns, ", ")
+)
+
+type job struct {
 	ID          string         `json:"id"`
 	Queue       string         `json:"queue"`
 	Status      string         `json:"status"`
@@ -23,8 +41,8 @@ type jobRow struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
-func (j jobRow) ToJob() *jobs.Job {
-	return &jobs.Job{
+func (j job) ToJob() jobs.Job {
+	return jobs.Job{
 		ID:          j.ID,
 		Queue:       j.Queue,
 		Status:      j.Status,
@@ -40,27 +58,7 @@ func (j jobRow) ToJob() *jobs.Job {
 	}
 }
 
-func (j jobRow) Columns() []string {
-	return []string{
-		"id",
-		"status",
-		"queue",
-		"arguments",
-		"result",
-		"last_error",
-		"retry_count",
-		"options",
-		"created_at",
-		"updated_at",
-		"scheduled_at",
-	}
-}
-
-func (j jobRow) StringColumns() string {
-	return strings.Join(j.Columns(), ", ")
-}
-
-func (j *jobRow) ScanDestinations() []interface{} {
+func (j *job) ScanDestinations() []interface{} {
 	return []interface{}{
 		&j.ID,
 		&j.Status,
