@@ -7,10 +7,10 @@ import (
 	"github.com/B3rs/gork/jobs"
 )
 
-func newDequeuer(q Queue, w Worker, sleepInterval time.Duration) *dequeuer {
+func newDequeuer(q Queue, updater updater, w Worker, sleepInterval time.Duration) *dequeuer {
 	return &dequeuer{
 		queue:         q,
-		handler:       newHandler(w, q),
+		handler:       newHandler(w, updater),
 		sleepInterval: sleepInterval,
 	}
 }

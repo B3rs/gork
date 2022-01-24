@@ -22,6 +22,7 @@ func NewWorkerPool(database *sql.DB, opts ...PoolOptionFunc) *WorkerPool {
 		queueFactory: func(name string) Queue {
 			return db.NewQueue(database, name)
 		},
+		updater: db.NewStore(database),
 	}
 
 	options := append(defaultPoolOptions, opts...)
@@ -38,6 +39,7 @@ type WorkerPool struct {
 	errChan      chan error
 	shutdown     func()
 	spawner      Spawner
+	updater      updater
 
 	coRoutines []func() error
 
@@ -78,7 +80,7 @@ func (w *WorkerPool) start() {
 
 		// worker routines
 		for i := 0; i < config.instances; i++ {
-			s := newDequeuer(q, config.worker, w.schedulerSleepInterval)
+			s := newDequeuer(q, w.updater, config.worker, w.schedulerSleepInterval)
 			w.spawner.Spawn(s)
 		}
 

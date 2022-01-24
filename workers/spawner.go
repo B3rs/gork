@@ -24,7 +24,7 @@ type spawner struct {
 	errChan  chan<- error
 }
 
-//go:generate mockgen -destination=./runner_mock.go -package=workers -source=spawner.go
+//go:generate mockgen -destination=./runner_mock_test.go -package=workers -source=spawner.go
 type runner interface {
 	Run(context.Context, chan<- error)
 }

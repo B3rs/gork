@@ -16,7 +16,6 @@ var (
 // Queue is a queue of jobs.
 type Queue interface {
 	Dequeue(ctx context.Context) (jobs.Job, error)
-	Update(ctx context.Context, job jobs.Job) error
 	RequeueTimedOutJobs(ctx context.Context, timeout time.Duration) error
 }
 

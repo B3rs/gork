@@ -6,7 +6,12 @@ import (
 	"github.com/B3rs/gork/jobs"
 )
 
-func newHandler(worker Worker, updater Queue) *handler {
+//go:generate mockgen -destination=./updater_mock_test.go -package=workers -source=handler.go
+type updater interface {
+	Update(context.Context, jobs.Job) error
+}
+
+func newHandler(worker Worker, updater updater) *handler {
 	return &handler{
 		worker:  worker,
 		updater: updater,
@@ -16,7 +21,7 @@ func newHandler(worker Worker, updater Queue) *handler {
 // handler runs a job in a worker, managing it's execution, errors and results.
 type handler struct {
 	worker  Worker
-	updater Queue
+	updater updater
 }
 
 // Handle a job execution

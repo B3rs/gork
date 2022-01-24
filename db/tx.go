@@ -7,7 +7,6 @@ import (
 	"github.com/B3rs/gork/jobs"
 )
 
-//go:generate mockgen -destination=./txmocks_test.go -package=db -source=tx.go
 type TxStore interface {
 	Search(ctx context.Context, limit int, offset int, search string) ([]jobs.Job, error)
 	Get(ctx context.Context, id string) (jobs.Job, error)
