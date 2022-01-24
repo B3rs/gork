@@ -47,7 +47,6 @@ func (s *Server) Start(db *sql.DB, addr string) error {
 			return err
 		}
 		s.e.GET("/*", echo.WrapHandler(uiHandler))
-		s.e.GET("/jobs/*", echo.WrapHandler(uiHandler))
 	}
 
 	// API routes
