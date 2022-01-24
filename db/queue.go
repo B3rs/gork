@@ -12,19 +12,19 @@ func NewQueue(db *sql.DB, name string) *Queue {
 	return &Queue{
 		db:        db,
 		name:      name,
-		txWrapper: newTxWrapper(db),
+		TxWrapper: NewTxWrapper(db),
 	}
 }
 
 type Queue struct {
-	txWrapper
+	TxWrapper
 
 	db   *sql.DB
 	name string
 }
 
 func (q *Queue) Dequeue(ctx context.Context) (jobs.Job, error) {
-	res, err := q.wrapTx(ctx, func(ctx context.Context, tx *sql.Tx) (interface{}, error) {
+	res, err := q.WrapTx(ctx, func(ctx context.Context, tx *sql.Tx) (interface{}, error) {
 		query := `UPDATE jobs
 		SET 
 			status=$1, 
@@ -60,7 +60,7 @@ func (q *Queue) Dequeue(ctx context.Context) (jobs.Job, error) {
 
 // Update the job in the database
 func (q *Queue) Update(ctx context.Context, job jobs.Job) error {
-	_, err := q.wrapTx(ctx, func(ctx context.Context, tx *sql.Tx) (interface{}, error) {
+	_, err := q.WrapTx(ctx, func(ctx context.Context, tx *sql.Tx) (interface{}, error) {
 
 		return nil, exec(ctx, tx, `UPDATE jobs
 		SET
@@ -84,7 +84,7 @@ func (q *Queue) Update(ctx context.Context, job jobs.Job) error {
 }
 
 func (q *Queue) RequeueTimedOutJobs(ctx context.Context, timeout time.Duration) error {
-	_, err := q.wrapTx(ctx, func(ctx context.Context, tx *sql.Tx) (interface{}, error) {
+	_, err := q.WrapTx(ctx, func(ctx context.Context, tx *sql.Tx) (interface{}, error) {
 		query := `UPDATE jobs
 		SET 
 			status=$1, 

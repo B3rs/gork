@@ -7,17 +7,17 @@ import (
 	"github.com/B3rs/gork/jobs"
 )
 
-func newTxWrapper(db *sql.DB) txWrapper {
-	return txWrapper{
+func NewTxWrapper(db *sql.DB) TxWrapper {
+	return TxWrapper{
 		db: db,
 	}
 }
 
-type txWrapper struct {
+type TxWrapper struct {
 	db *sql.DB
 }
 
-func (w txWrapper) wrapTx(ctx context.Context, f func(ctx context.Context, tx *sql.Tx) (interface{}, error)) (interface{}, error) {
+func (w TxWrapper) WrapTx(ctx context.Context, f func(ctx context.Context, tx *sql.Tx) (interface{}, error)) (interface{}, error) {
 	tx, err := w.db.Begin()
 	if err != nil {
 		return nil, err

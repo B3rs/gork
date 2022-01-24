@@ -1,21 +1,31 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 	"strconv"
 
-	"github.com/B3rs/gork/client"
+	"github.com/B3rs/gork/db"
 	"github.com/B3rs/gork/jobs"
 	echo "github.com/labstack/echo/v4"
 )
 
-func NewJobsAPI(db *sql.DB) JobsAPI {
-	return JobsAPI{client: client.NewDBClient(db)}
+type dbStore interface {
+	Search(ctx context.Context, limit int, offset int, search string) ([]jobs.Job, error)
+	Get(ctx context.Context, id string) (jobs.Job, error)
+	Update(ctx context.Context, job jobs.Job) error
+	Create(ctx context.Context, job jobs.Job) error
+	Deschedule(ctx context.Context, id string) error
+	ScheduleNow(ctx context.Context, id string) error
+}
+
+func NewJobsAPI(database *sql.DB) JobsAPI {
+	return JobsAPI{db: db.NewStore(database)}
 }
 
 type JobsAPI struct {
-	client client.Client
+	db dbStore
 }
 
 type jobsList struct {
@@ -35,7 +45,7 @@ func (j JobsAPI) ListHandler(c echo.Context) error {
 	}
 	search := c.QueryParam("q")
 
-	jobs, err := j.client.GetAll(c.Request().Context(), page-1, limit, search)
+	jobs, err := j.db.Search(c.Request().Context(), page-1, limit, search)
 	if err != nil {
 		return err
 	}
@@ -45,7 +55,7 @@ func (j JobsAPI) ListHandler(c echo.Context) error {
 
 func (j JobsAPI) GetHandler(c echo.Context) error {
 
-	job, err := j.client.Get(c.Request().Context(), c.Param("id"))
+	job, err := j.db.Get(c.Request().Context(), c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -57,7 +67,7 @@ func (j JobsAPI) RetryHandler(c echo.Context) error {
 
 	id := c.Param("id")
 
-	err := j.client.ForceRetry(c.Request().Context(), id)
+	err := j.db.ScheduleNow(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
@@ -69,7 +79,7 @@ func (j JobsAPI) CancelHandler(c echo.Context) error {
 
 	id := c.Param("id")
 
-	err := j.client.Cancel(c.Request().Context(), id)
+	err := j.db.Deschedule(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
