@@ -7,6 +7,7 @@ import (
 	"github.com/B3rs/gork/jobs"
 )
 
+//go:generate mockgen -destination=./txmocks_test.go -package=db -source=tx.go
 type TxStore interface {
 	Search(ctx context.Context, limit int, offset int, search string) ([]jobs.Job, error)
 	Get(ctx context.Context, id string) (jobs.Job, error)
@@ -37,7 +38,6 @@ func (tx *Tx) Update(ctx context.Context, job jobs.Job) error {
 		updated_at=now()
 	WHERE id = $6`,
 		job.Status,
-		// sql.NullString{String: string(job.Result), Valid: len(job.Result) != 0},
 		job.Result,
 		job.LastError,
 		job.RetryCount,
