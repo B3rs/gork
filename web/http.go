@@ -2,11 +2,11 @@ package web
 
 import (
 	"context"
-	"database/sql"
 	"embed"
 	"io/fs"
 	"net/http"
 
+	"github.com/B3rs/gork/db"
 	"github.com/B3rs/gork/web/api"
 	echo "github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -25,11 +25,19 @@ func getUIHandler(fsys fs.FS) (http.Handler, error) {
 	return http.FileServer(http.FS(buildDir)), nil
 }
 
-type Server struct {
-	e *echo.Echo
+func NewServer(s db.JobsStore) *Server {
+	return &Server{
+		e:     echo.New(),
+		store: s,
+	}
 }
 
-func (s *Server) Start(db *sql.DB, addr string) error {
+type Server struct {
+	e     *echo.Echo
+	store db.JobsStore
+}
+
+func (s *Server) Start(addr string) error {
 
 	s.e = echo.New()
 
@@ -51,7 +59,7 @@ func (s *Server) Start(db *sql.DB, addr string) error {
 
 	// API routes
 	{
-		jobs := api.NewJobsAPI(db)
+		jobs := api.NewJobsAPI(s.store)
 
 		v1 := s.e.Group("/api/v1")
 		v1.POST("/jobs/:id/retry", jobs.RetryHandler)

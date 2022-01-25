@@ -14,6 +14,16 @@ func NewStore(db *sql.DB) *Store {
 	}
 }
 
+//go:generate mockgen -destination=./store_mock.go -package=db -source=store.go
+type JobsStore interface {
+	Update(ctx context.Context, job jobs.Job) error
+	Create(ctx context.Context, job jobs.Job) error
+	Deschedule(ctx context.Context, id string) error
+	ScheduleNow(ctx context.Context, id string) error
+	Search(ctx context.Context, limit, offset int, search string) ([]jobs.Job, error)
+	Get(ctx context.Context, id string) (jobs.Job, error)
+}
+
 type Store struct {
 	txWrapper      TxWrapper
 	txStoreFactory func(tx *sql.Tx) TxStore

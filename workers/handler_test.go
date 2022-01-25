@@ -7,6 +7,7 @@ import (
 	"testing"
 	time "time"
 
+	"github.com/B3rs/gork/db"
 	"github.com/B3rs/gork/jobs"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,7 @@ func Test_Handler_Handle(t *testing.T) {
 		name               string
 		job                jobs.Job
 		workerExpectation  func(w *MockWorker)
-		updaterExpectation func(u *Mockupdater)
+		updaterExpectation func(u *db.MockJobsStore)
 		wantErr            error
 	}{
 		{
@@ -26,7 +27,7 @@ func Test_Handler_Handle(t *testing.T) {
 			workerExpectation: func(w *MockWorker) {
 				w.EXPECT().Execute(gomock.Any(), gomock.Eq(jobs.Job{ID: "1"})).Return("resultstring", nil)
 			},
-			updaterExpectation: func(u *Mockupdater) {
+			updaterExpectation: func(u *db.MockJobsStore) {
 				b, _ := json.Marshal("resultstring")
 				u.EXPECT().Update(gomock.Any(), gomock.Eq(jobs.Job{ID: "1", Status: jobs.StatusCompleted, Result: b}))
 			},
@@ -37,7 +38,7 @@ func Test_Handler_Handle(t *testing.T) {
 			workerExpectation: func(w *MockWorker) {
 				w.EXPECT().Execute(gomock.Any(), gomock.Eq(jobs.Job{ID: "1"})).Return(map[string]interface{}{"foo": make(chan int)}, nil)
 			},
-			updaterExpectation: func(u *Mockupdater) {
+			updaterExpectation: func(u *db.MockJobsStore) {
 				u.EXPECT().Update(gomock.Any(), gomock.Eq(jobs.Job{ID: "1", Status: jobs.StatusCompleted, LastError: "json: unsupported type: chan int"}))
 			},
 		},
@@ -50,7 +51,7 @@ func Test_Handler_Handle(t *testing.T) {
 					Options: jobs.Options{RetryInterval: time.Second, MaxRetries: 1},
 				})).Return(nil, errors.New("exec error"))
 			},
-			updaterExpectation: func(u *Mockupdater) {
+			updaterExpectation: func(u *db.MockJobsStore) {
 				now = func() time.Time {
 					return time.Time{}
 				}
@@ -74,7 +75,7 @@ func Test_Handler_Handle(t *testing.T) {
 					Options:    jobs.Options{RetryInterval: time.Second, MaxRetries: 1},
 				})).Return(nil, errors.New("exec error"))
 			},
-			updaterExpectation: func(u *Mockupdater) {
+			updaterExpectation: func(u *db.MockJobsStore) {
 				now = func() time.Time {
 					return time.Time{}
 				}
@@ -95,14 +96,14 @@ func Test_Handler_Handle(t *testing.T) {
 			w := NewMockWorker(mockCtrl)
 			tt.workerExpectation(w)
 
-			MockupdaterCtrl := gomock.NewController(t)
-			defer MockupdaterCtrl.Finish()
-			q := NewMockupdater(MockupdaterCtrl)
-			tt.updaterExpectation(q)
+			mockupdaterCtrl := gomock.NewController(t)
+			defer mockupdaterCtrl.Finish()
+			store := db.NewMockJobsStore(mockupdaterCtrl)
+			tt.updaterExpectation(store)
 
 			r := &handler{
 				worker:  w,
-				updater: q,
+				updater: store,
 			}
 			err := r.Handle(context.TODO(), tt.job)
 			assert.Equal(t, tt.wantErr, err)

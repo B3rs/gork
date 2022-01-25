@@ -2,7 +2,6 @@ package workers
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"os"
 	"os/signal"
@@ -74,10 +73,10 @@ func WithGracefulShutdown() PoolOptionFunc {
 	}
 }
 
-func WithAdminUI(db *sql.DB, addr string) PoolOptionFunc {
+func WithAdminUI(addr string) PoolOptionFunc {
 	return func(p *WorkerPool) *WorkerPool {
 		routine := func() error {
-			s := &web.Server{}
+			s := web.NewServer(p.store)
 			// Start server
 			go func() {
 
@@ -98,7 +97,7 @@ func WithAdminUI(db *sql.DB, addr string) PoolOptionFunc {
 				_ = s.Shutdown(ctx)
 
 			}()
-			return s.Start(db, addr)
+			return s.Start(addr)
 		}
 
 		p.coRoutines = append(p.coRoutines, routine)

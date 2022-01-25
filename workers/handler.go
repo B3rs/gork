@@ -6,7 +6,6 @@ import (
 	"github.com/B3rs/gork/jobs"
 )
 
-//go:generate mockgen -destination=./updater_mock_test.go -package=workers -source=handler.go
 type updater interface {
 	Update(context.Context, jobs.Job) error
 }

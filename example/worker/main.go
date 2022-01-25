@@ -24,8 +24,8 @@ func main() {
 	// create a worker pool
 	pool := workers.NewWorkerPool(
 		db,
-		workers.WithGracefulShutdown(),   // Add graceful shutdown if you like to complete all jobs before exiting
-		workers.WithAdminUI(db, ":8080"), // Add admin UI if you like
+		workers.WithGracefulShutdown(), // Add graceful shutdown if you like to complete all jobs before exiting
+		workers.WithAdminUI(":8080"),   // Add admin UI if you like
 	)
 	// register a worker on increase queue
 	pool.RegisterWorker(

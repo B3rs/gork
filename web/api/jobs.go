@@ -1,8 +1,6 @@
 package api
 
 import (
-	"context"
-	"database/sql"
 	"net/http"
 	"strconv"
 
@@ -11,21 +9,12 @@ import (
 	echo "github.com/labstack/echo/v4"
 )
 
-type dbStore interface {
-	Search(ctx context.Context, limit int, offset int, search string) ([]jobs.Job, error)
-	Get(ctx context.Context, id string) (jobs.Job, error)
-	Update(ctx context.Context, job jobs.Job) error
-	Create(ctx context.Context, job jobs.Job) error
-	Deschedule(ctx context.Context, id string) error
-	ScheduleNow(ctx context.Context, id string) error
-}
-
-func NewJobsAPI(database *sql.DB) JobsAPI {
-	return JobsAPI{db: db.NewStore(database)}
+func NewJobsAPI(store db.JobsStore) JobsAPI {
+	return JobsAPI{store: store}
 }
 
 type JobsAPI struct {
-	db dbStore
+	store db.JobsStore
 }
 
 type jobsList struct {
@@ -45,7 +34,7 @@ func (j JobsAPI) ListHandler(c echo.Context) error {
 	}
 	search := c.QueryParam("q")
 
-	jobs, err := j.db.Search(c.Request().Context(), page-1, limit, search)
+	jobs, err := j.store.Search(c.Request().Context(), page-1, limit, search)
 	if err != nil {
 		return err
 	}
@@ -55,7 +44,7 @@ func (j JobsAPI) ListHandler(c echo.Context) error {
 
 func (j JobsAPI) GetHandler(c echo.Context) error {
 
-	job, err := j.db.Get(c.Request().Context(), c.Param("id"))
+	job, err := j.store.Get(c.Request().Context(), c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -67,7 +56,7 @@ func (j JobsAPI) RetryHandler(c echo.Context) error {
 
 	id := c.Param("id")
 
-	err := j.db.ScheduleNow(c.Request().Context(), id)
+	err := j.store.ScheduleNow(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
@@ -79,7 +68,7 @@ func (j JobsAPI) CancelHandler(c echo.Context) error {
 
 	id := c.Param("id")
 
-	err := j.db.Deschedule(c.Request().Context(), id)
+	err := j.store.Deschedule(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
