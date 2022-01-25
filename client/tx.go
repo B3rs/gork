@@ -8,6 +8,8 @@ import (
 	"github.com/B3rs/gork/jobs"
 )
 
+//go:generate mockgen -destination=./txmocks_test.go -package=client -source=tx.go
+
 type TxClient interface {
 	Schedule(ctx context.Context, id string, queueName string, arguments interface{}, options ...OptionFunc) error
 	Cancel(ctx context.Context, id string) error

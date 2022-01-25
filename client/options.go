@@ -6,6 +6,15 @@ import (
 	"github.com/B3rs/gork/jobs"
 )
 
+var (
+	now = time.Now
+
+	defaultOptions = []OptionFunc{
+		WithRetryInterval(10 * time.Second),
+		scheduleImmediately(),
+	}
+)
+
 type OptionFunc func(j jobs.Job) jobs.Job
 
 func WithMaxRetries(tries int) OptionFunc {
@@ -31,14 +40,7 @@ func WithScheduleTime(t time.Time) OptionFunc {
 
 func scheduleImmediately() OptionFunc {
 	return func(j jobs.Job) jobs.Job {
-		j.ScheduledAt = time.Now()
+		j.ScheduledAt = now()
 		return j
 	}
 }
-
-var (
-	defaultOptions = []OptionFunc{
-		WithRetryInterval(10 * time.Second),
-		scheduleImmediately(),
-	}
-)

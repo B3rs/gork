@@ -10,7 +10,6 @@ import (
 
 func NewClient(database *sql.DB) *Client {
 	return &Client{
-		db: database,
 		txClientFactory: func(tx *sql.Tx) TxClient {
 			return newTx(tx)
 		},
@@ -23,7 +22,6 @@ type txWrapper interface {
 }
 
 type Client struct {
-	db              *sql.DB
 	txClientFactory func(*sql.Tx) TxClient
 	txWrapper       txWrapper
 }
