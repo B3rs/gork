@@ -34,7 +34,7 @@ func (j JobsAPI) ListHandler(c echo.Context) error {
 	}
 	search := c.QueryParam("q")
 
-	jobs, err := j.store.Search(c.Request().Context(), page-1, limit, search)
+	jobs, err := j.store.Search(c.Request().Context(), limit, page-1, search)
 	if err != nil {
 		return err
 	}
