@@ -88,6 +88,31 @@ func Test_Handler_Handle(t *testing.T) {
 				}))
 			},
 		},
+		{
+			name: "should return updater error in case of execution success",
+			job:  jobs.Job{ID: "1"},
+			workerExpectation: func(w *MockWorker) {
+				w.EXPECT().Execute(gomock.Any(), gomock.Eq(jobs.Job{ID: "1"})).Return("resultstring", nil)
+			},
+			updaterExpectation: func(u *db.MockJobsStore) {
+				b, _ := json.Marshal("resultstring")
+				u.EXPECT().Update(gomock.Any(), gomock.Eq(jobs.Job{ID: "1", Status: jobs.StatusCompleted, Result: b})).
+					Return(errors.New("update error"))
+			},
+			wantErr: errors.New("update error"),
+		},
+		{
+			name: "should return updater error in case of execution fail",
+			job:  jobs.Job{ID: "1"},
+			workerExpectation: func(w *MockWorker) {
+				w.EXPECT().Execute(gomock.Any(), gomock.Eq(jobs.Job{ID: "1"})).Return(nil, errors.New("exec error"))
+			},
+			updaterExpectation: func(u *db.MockJobsStore) {
+				u.EXPECT().Update(gomock.Any(), gomock.Eq(jobs.Job{ID: "1", Status: jobs.StatusFailed, LastError: "exec error"})).
+					Return(errors.New("update error"))
+			},
+			wantErr: errors.New("update error"),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -109,4 +134,25 @@ func Test_Handler_Handle(t *testing.T) {
 			assert.Equal(t, tt.wantErr, err)
 		})
 	}
+}
+
+//go:generate mockgen -destination=./handlermocks_test.go -package=workers -source=handler_test.go
+type failWorker interface {
+	Execute(ctx context.Context, job jobs.Job) (interface{}, error)
+	OnFailure(context.Context, jobs.Job) error
+}
+
+func Test_handler_fail_OnFailCallback(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	w := NewMockfailWorker(mockCtrl)
+	store := db.NewMockJobsStore(mockCtrl)
+
+	store.EXPECT().Update(context.TODO(), jobs.Job{ID: "1", LastError: "exec error", Status: jobs.StatusFailed})
+	w.EXPECT().OnFailure(context.TODO(), jobs.Job{ID: "1", LastError: "exec error", Status: jobs.StatusFailed}).Return(nil)
+
+	handler := &handler{worker: w, updater: store}
+	err := handler.fail(context.TODO(), jobs.Job{ID: "1"}, errors.New("exec error"))
+	assert.NoError(t, err)
+
 }

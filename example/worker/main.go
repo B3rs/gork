@@ -84,6 +84,11 @@ func (w IncreaseWorker) Execute(ctx context.Context, job jobs.Job) (interface{},
 	return IncreaseResult{Increased: args.IncreaseThis + 1}, nil
 }
 
+// We can add a custom callback for failure, so we can do something like:
+func (w IncreaseWorker) OnFailure(ctx context.Context, job jobs.Job, err error) {
+	log.Println("job failed", job.ID, err)
+}
+
 type LowerizeArgs struct {
 	LowerizeThis string `json:"lowerize_this"`
 }
