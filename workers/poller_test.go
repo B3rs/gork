@@ -22,18 +22,18 @@ func Test_Poller_Run(t *testing.T) {
 	defer runnerMockCtrl.Finish()
 	r := NewMockHandler(runnerMockCtrl)
 
-	popCall := q.EXPECT().Pop(gomock.Any()).Return(jobs.Job{ID: "job1"}, nil).Times(1)
-	handleCall := r.EXPECT().Handle(gomock.Any(), jobs.Job{ID: "job1"}).Return(nil).Times(1).After(popCall)
+	pollCall := q.EXPECT().Poll(gomock.Any()).Return(jobs.Job{ID: "job1"}, nil).Times(1)
+	handleCall := r.EXPECT().Handle(gomock.Any(), jobs.Job{ID: "job1"}).Return(nil).Times(1).After(pollCall)
 
-	popCall2 := q.EXPECT().Pop(gomock.Any()).Return(jobs.Job{ID: "job2"}, nil).Times(1).After(handleCall)
-	handleCall2 := r.EXPECT().Handle(gomock.Any(), jobs.Job{ID: "job2"}).Return(nil).Times(1).After(popCall2).After(handleCall)
+	pollCall2 := q.EXPECT().Poll(gomock.Any()).Return(jobs.Job{ID: "job2"}, nil).Times(1).After(handleCall)
+	handleCall2 := r.EXPECT().Handle(gomock.Any(), jobs.Job{ID: "job2"}).Return(nil).Times(1).After(pollCall2).After(handleCall)
 
-	popCall3 := q.EXPECT().Pop(gomock.Any()).Return(jobs.Job{ID: "job3"}, nil).Times(1).After(handleCall2).Return(jobs.Job{}, jobs.ErrJobNotFound)
+	pollCall3 := q.EXPECT().Poll(gomock.Any()).Return(jobs.Job{ID: "job3"}, nil).Times(1).After(handleCall2).Return(jobs.Job{}, jobs.ErrJobNotFound)
 
-	popCall4 := q.EXPECT().Pop(gomock.Any()).Return(jobs.Job{}, errors.New("queue error")).Times(1).After(popCall3)
+	pollCall4 := q.EXPECT().Poll(gomock.Any()).Return(jobs.Job{}, errors.New("queue error")).Times(1).After(pollCall3)
 
-	popCall5 := q.EXPECT().Pop(gomock.Any()).Return(jobs.Job{ID: "job4"}, nil).Times(1).After(popCall4)
-	r.EXPECT().Handle(gomock.Any(), jobs.Job{ID: "job4"}).Return(errors.New("run error")).Times(1).After(popCall5).Do(func(_, _ interface{}) { cancel() })
+	pollCall5 := q.EXPECT().Poll(gomock.Any()).Return(jobs.Job{ID: "job4"}, nil).Times(1).After(pollCall4)
+	r.EXPECT().Handle(gomock.Any(), jobs.Job{ID: "job4"}).Return(errors.New("run error")).Times(1).After(pollCall5).Do(func(_, _ interface{}) { cancel() })
 
 	s := &poller{
 		queue:   q,

@@ -15,7 +15,7 @@ var (
 
 // Queue is a queue of jobs.
 type Queue interface {
-	Pop(ctx context.Context) (jobs.Job, error)
+	Poll(ctx context.Context) (jobs.Job, error)
 	RequeueTimedOutJobs(ctx context.Context, timeout time.Duration) error
 }
 

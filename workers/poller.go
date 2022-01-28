@@ -29,7 +29,7 @@ func (d *poller) Run(ctx context.Context, errChan chan<- error) {
 			return
 		default:
 
-			job, err := d.queue.Pop(ctx)
+			job, err := d.queue.Poll(ctx)
 			if err == jobs.ErrJobNotFound {
 				time.Sleep(d.sleepInterval)
 				continue

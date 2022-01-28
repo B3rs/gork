@@ -36,19 +36,19 @@ func (m *MockQueue) EXPECT() *MockQueueMockRecorder {
 	return m.recorder
 }
 
-// Pop mocks base method.
-func (m *MockQueue) Pop(arg0 context.Context) (jobs.Job, error) {
+// Poll mocks base method.
+func (m *MockQueue) Poll(arg0 context.Context) (jobs.Job, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Pop", arg0)
+	ret := m.ctrl.Call(m, "Poll", arg0)
 	ret0, _ := ret[0].(jobs.Job)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Pop indicates an expected call of Pop.
-func (mr *MockQueueMockRecorder) Pop(arg0 interface{}) *gomock.Call {
+// Poll indicates an expected call of Poll.
+func (mr *MockQueueMockRecorder) Poll(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Pop", reflect.TypeOf((*MockQueue)(nil).Pop), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Poll", reflect.TypeOf((*MockQueue)(nil).Poll), arg0)
 }
 
 // RequeueTimedOutJobs mocks base method.
