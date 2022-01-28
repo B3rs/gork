@@ -74,6 +74,13 @@ func Test_Handler_Handle(t *testing.T) {
 					RetryCount: 1,
 					Options:    jobs.Options{RetryInterval: time.Second, MaxRetries: 1},
 				})).Return(nil, errors.New("exec error"))
+				w.EXPECT().OnFailure(gomock.Any(), gomock.Eq(jobs.Job{
+					ID:         "1",
+					RetryCount: 1,
+					LastError:  "exec error",
+					Status:     jobs.StatusFailed,
+					Options:    jobs.Options{RetryInterval: time.Second, MaxRetries: 1},
+				}))
 			},
 			updaterExpectation: func(u *db.MockJobsStore) {
 				now = func() time.Time {
@@ -136,16 +143,10 @@ func Test_Handler_Handle(t *testing.T) {
 	}
 }
 
-//go:generate mockgen -destination=./handlermocks_test.go -package=workers -source=handler_test.go
-type failWorker interface {
-	Execute(ctx context.Context, job jobs.Job) (interface{}, error)
-	OnFailure(context.Context, jobs.Job) error
-}
-
 func Test_handler_fail_OnFailCallback(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	w := NewMockfailWorker(mockCtrl)
+	w := NewMockWorker(mockCtrl)
 	store := db.NewMockJobsStore(mockCtrl)
 
 	store.EXPECT().Update(context.TODO(), jobs.Job{ID: "1", LastError: "exec error", Status: jobs.StatusFailed})

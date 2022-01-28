@@ -50,7 +50,7 @@ func (h *handler) fail(ctx context.Context, job jobs.Job, err error) error {
 		return err
 	}
 
-	return execOnFailureCallback(ctx, h.worker, job)
+	return h.worker.OnFailure(ctx, job)
 }
 
 func (h *handler) success(ctx context.Context, job jobs.Job, res interface{}) error {
@@ -62,17 +62,4 @@ func (h *handler) success(ctx context.Context, job jobs.Job, res interface{}) er
 	}
 
 	return h.updater.Update(ctx, job)
-}
-
-type failer interface {
-	OnFailure(context.Context, jobs.Job) error
-}
-
-func execOnFailureCallback(ctx context.Context, worker Worker, job jobs.Job) error {
-	f, ok := worker.(failer)
-	if !ok {
-		return nil
-	}
-
-	return f.OnFailure(ctx, job)
 }

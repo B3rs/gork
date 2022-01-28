@@ -58,6 +58,8 @@ type IncreaseResult struct {
 }
 
 type IncreaseWorker struct {
+	workers.DefaultWorker
+
 	logFunction func(...interface{})
 }
 

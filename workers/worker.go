@@ -4,6 +4,7 @@ package workers
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/B3rs/gork/jobs"
@@ -37,6 +38,7 @@ type WorkerFunc func(ctx context.Context, job jobs.Job) (interface{}, error)
 // Worker is the interface that must be implemented by workers.
 type Worker interface {
 	Execute(ctx context.Context, job jobs.Job) (interface{}, error)
+	OnFailure(ctx context.Context, job jobs.Job) error
 }
 
 // funcWorker is just a wrapper for a WorkerFunc.
@@ -47,4 +49,21 @@ type funcWorker struct {
 // Execute runs the worker function for the given job.
 func (f funcWorker) Execute(ctx context.Context, job jobs.Job) (interface{}, error) {
 	return f.f(ctx, job)
+}
+
+// OnFailure runs the on failure callback for the given job.
+func (f funcWorker) OnFailure(ctx context.Context, job jobs.Job) error {
+	return nil
+}
+
+type DefaultWorker struct{}
+
+// Execute runs the worker function for the given job.
+func (f DefaultWorker) Execute(ctx context.Context, job jobs.Job) (interface{}, error) {
+	return nil, errors.New("not implemented")
+}
+
+// OnFailure runs the on failure callback for the given job.
+func (f DefaultWorker) OnFailure(ctx context.Context, job jobs.Job) error {
+	return nil
 }

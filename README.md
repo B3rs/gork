@@ -29,4 +29,4 @@ see examples to see it in action.
 - [ ] workers statistics
 - [ ] queue statistics
 - [ ] CI with gh actions
-- [ ] Job failure callbacks
+- [x] Job failure callbacks

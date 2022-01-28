@@ -103,6 +103,20 @@ func (mr *MockWorkerMockRecorder) Execute(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockWorker)(nil).Execute), arg0, arg1)
 }
 
+// OnFailure mocks base method.
+func (m *MockWorker) OnFailure(arg0 context.Context, arg1 jobs.Job) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OnFailure", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// OnFailure indicates an expected call of OnFailure.
+func (mr *MockWorkerMockRecorder) OnFailure(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnFailure", reflect.TypeOf((*MockWorker)(nil).OnFailure), arg0, arg1)
+}
+
 // MockHandler is a mock of Handler interface.
 type MockHandler struct {
 	ctrl     *gomock.Controller

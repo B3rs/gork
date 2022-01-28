@@ -17,6 +17,10 @@ func (w testWorker) Execute(context.Context, jobs.Job) (interface{}, error) {
 	return w.res, w.err
 }
 
+func (w testWorker) OnFailure(context.Context, jobs.Job) error {
+	return nil
+}
+
 func Test_register_RegisterWorker(t *testing.T) {
 
 	r := newRegister()
