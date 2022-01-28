@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQueue_Dequeue(t *testing.T) {
+func TestQueue_Pop(t *testing.T) {
 
 	db, mock, err := sqlmock.New()
 	assert.Nil(t, err, "an error '%s' was not expected when opening a stub database connection", err)
@@ -45,9 +45,9 @@ func TestQueue_Dequeue(t *testing.T) {
 	mock.ExpectCommit()
 
 	q := NewQueue(db, "test")
-	got, err := q.Dequeue(context.TODO())
+	got, err := q.Pop(context.TODO())
 
-	assert.Nil(t, err, "dequeue should not return an error")
+	assert.Nil(t, err, "Pop should not return an error")
 	assert.Equal(t, expectedJob, got)
 
 	// we make sure that all expectations were met
@@ -55,7 +55,7 @@ func TestQueue_Dequeue(t *testing.T) {
 	assert.Nil(t, err, "there were unfulfilled expectations: %s", err)
 }
 
-func TestQueue_Dequeue_error(t *testing.T) {
+func TestQueue_Pop_error(t *testing.T) {
 
 	db, mock, err := sqlmock.New()
 	assert.Nil(t, err, "an error '%s' was not expected when opening a stub database connection", err)
@@ -87,9 +87,9 @@ func TestQueue_Dequeue_error(t *testing.T) {
 	mock.ExpectRollback()
 
 	q := NewQueue(db, "test")
-	got, err := q.Dequeue(context.TODO())
+	got, err := q.Pop(context.TODO())
 
-	assert.Equal(t, errors.New("error"), err, "dequeue should  return an error")
+	assert.Equal(t, errors.New("error"), err, "Pop should  return an error")
 	assert.Equal(t, jobs.Job{}, got)
 
 	// we make sure that all expectations were met

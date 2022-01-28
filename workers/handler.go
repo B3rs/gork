@@ -31,10 +31,11 @@ func (h *handler) Handle(ctx context.Context, job jobs.Job) error {
 		if job.ShouldRetry() {
 			retryAt := now().Add(job.Options.RetryInterval)
 			job = job.ScheduleRetry(retryAt)
-		} else {
-			job = job.SetStatus(jobs.StatusFailed)
+			job = job.SetLastError(err)
+			return h.updater.Update(ctx, job)
 		}
 
+		job = job.SetStatus(jobs.StatusFailed)
 		job = job.SetLastError(err)
 		return h.updater.Update(ctx, job)
 	}

@@ -24,7 +24,7 @@ type Queue struct {
 	name string
 }
 
-func (q *Queue) Dequeue(ctx context.Context) (jobs.Job, error) {
+func (q *Queue) Pop(ctx context.Context) (jobs.Job, error) {
 	res, err := q.WrapTx(ctx, func(ctx context.Context, tx *sql.Tx) (interface{}, error) {
 		query := `UPDATE jobs
 		SET 

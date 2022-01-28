@@ -28,3 +28,5 @@ see examples to see it in action.
 - [ ] performance benchmarks
 - [ ] workers statistics
 - [ ] queue statistics
+- [ ] CI with gh actions
+- [ ] Job failure callbacks

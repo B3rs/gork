@@ -80,7 +80,7 @@ func (w *WorkerPool) start() {
 
 		// worker routines
 		for i := 0; i < config.instances; i++ {
-			s := newDequeuer(q, w.store, config.worker, w.schedulerSleepInterval)
+			s := newPoller(q, w.store, config.worker, w.schedulerSleepInterval)
 			w.spawner.Spawn(s)
 		}
 
