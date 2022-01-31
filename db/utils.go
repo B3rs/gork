@@ -57,3 +57,25 @@ func exec(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) er
 	)
 	return err
 }
+
+func queryQueueStatistics(ctx context.Context, tx *sql.Tx, query string, args ...interface{}) ([]QueueStatistics, error) {
+	qs := []QueueStatistics{}
+
+	rows, err := tx.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		s := QueueStatistics{}
+		rows.Scan(&s.Name, &s.Scheduled, &s.Initialized, &s.Failed, &s.Completed)
+		qs = append(qs, s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return qs, nil
+}

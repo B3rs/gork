@@ -66,6 +66,8 @@ func (s *Server) Start(addr string) error {
 		v1.GET("/jobs/:id", jobs.GetHandler)
 		v1.DELETE("/jobs/:id", jobs.CancelHandler)
 		v1.GET("/jobs", jobs.ListHandler)
+
+		v1.GET("/stats", jobs.GetStatisticsHandler)
 	}
 
 	return s.e.Start(addr)

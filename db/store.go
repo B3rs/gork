@@ -22,6 +22,7 @@ type JobsStore interface {
 	ScheduleNow(ctx context.Context, id string) error
 	Search(ctx context.Context, limit, offset int, search string) ([]jobs.Job, error)
 	Get(ctx context.Context, id string) (jobs.Job, error)
+	GetStatistics(ctx context.Context) (Statistics, error)
 }
 
 type Store struct {
@@ -79,4 +80,35 @@ func (s *Store) Get(ctx context.Context, id string) (jobs.Job, error) {
 		return jobs.Job{}, err
 	}
 	return res.(jobs.Job), err
+}
+
+func (s *Store) GetStatistics(ctx context.Context) (Statistics, error) {
+	res, err := s.txWrapper.WrapTx(ctx, func(ctx context.Context, tx *sql.Tx) (interface{}, error) {
+		query := `SELECT *
+		FROM (
+			SELECT queue FROM jobs GROUP BY queue
+		) AS queues
+		JOIN LATERAL (
+			SELECT count(*) AS scheduled FROM jobs WHERE queue = queues.queue AND status=$1
+		) AS s ON true
+		JOIN LATERAL (
+			SELECT count(*) AS initialized FROM jobs WHERE queue = queues.queue AND status=$2
+		) AS i ON true
+		JOIN LATERAL (
+			SELECT count(*) AS failed FROM jobs WHERE queue = queues.queue AND status=$3
+		) AS f ON true
+		JOIN LATERAL (
+			SELECT count(*) AS completed FROM jobs WHERE queue = queues.queue AND status=$4
+		) AS c ON true
+		`
+		qs, err := queryQueueStatistics(ctx, tx, query, jobs.StatusScheduled, jobs.StatusInitialized, jobs.StatusFailed, jobs.StatusCompleted)
+		if err != nil {
+			return nil, err
+		}
+		return Statistics{Queues: qs}, nil
+	})
+	if err != nil {
+		return Statistics{}, err
+	}
+	return res.(Statistics), nil
 }

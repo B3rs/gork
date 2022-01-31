@@ -75,3 +75,13 @@ func (j JobsAPI) CancelHandler(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, nil)
 }
+
+func (j JobsAPI) GetStatisticsHandler(c echo.Context) error {
+
+	stats, err := j.store.GetStatistics(c.Request().Context())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, stats)
+}

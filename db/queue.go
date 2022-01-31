@@ -10,7 +10,6 @@ import (
 
 func NewQueue(db *sql.DB, name string) *Queue {
 	return &Queue{
-		db:        db,
 		name:      name,
 		TxWrapper: NewTxWrapper(db),
 		now:       time.Now,
@@ -20,7 +19,6 @@ func NewQueue(db *sql.DB, name string) *Queue {
 type Queue struct {
 	TxWrapper
 	now  func() time.Time
-	db   *sql.DB
 	name string
 }
 
