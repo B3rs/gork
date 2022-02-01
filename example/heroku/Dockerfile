@@ -7,4 +7,4 @@ RUN go get github.com/B3rs/gork@main
 WORKDIR /heroku/$COMMAND
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $COMMAND -ldflags="-w -s" .
 ENV COMMAND_NAME=$COMMAND
-CMD ["./${$COMMAND_NAME}"]
+CMD ./${COMMAND_NAME}
