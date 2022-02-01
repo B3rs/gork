@@ -17,3 +17,18 @@ jobs:
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           usedocker: true
           appdir: example/heroku/worker
+          docker_build_args: |
+            COMMAND
+        env:
+          COMMAND: worker
+      # - uses: akhileshns/heroku-deploy@v3.12.12
+      #   with:
+      #     heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+      #     heroku_app_name: "gork-client-example"
+      #     heroku_email: ${{secrets.HEROKU_EMAIL}}
+      #     usedocker: true
+      #     appdir: example/heroku/client
+      #     docker_build_args: |
+      #       COMMAND
+      #   env:
+      #     COMMAND: client

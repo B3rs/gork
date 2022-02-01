@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	herokujobs "github.com/B3rs/gork/example/heroku/jobs"
+
 	"github.com/B3rs/gork/jobs"
 	"github.com/B3rs/gork/workers"
 	_ "github.com/lib/pq"
@@ -49,14 +51,6 @@ func main() {
 	}
 }
 
-type IncreaseArgs struct {
-	IncreaseThis int `json:"increase_this"`
-}
-
-type IncreaseResult struct {
-	Increased int `json:"increased"`
-}
-
 type IncreaseWorker struct {
 	workers.DefaultWorker
 
@@ -69,7 +63,7 @@ func (w IncreaseWorker) Execute(ctx context.Context, job jobs.Job) (interface{},
 	defer func() { w.logFunction("end job", job.ID, "in", time.Since(t)) }()
 
 	// Parse the job arguments into a struct
-	args := IncreaseArgs{}
+	args := herokujobs.IncreaseArgs{}
 	if err := job.ParseArguments(&args); err != nil {
 		return nil, err
 	}
@@ -83,7 +77,7 @@ func (w IncreaseWorker) Execute(ctx context.Context, job jobs.Job) (interface{},
 	}
 
 	// Return the result to be saved in the database
-	return IncreaseResult{Increased: args.IncreaseThis + 1}, nil
+	return herokujobs.IncreaseResult{Increased: args.IncreaseThis + 1}, nil
 }
 
 // We can add a custom callback for failure, so we can do something like:
@@ -92,20 +86,13 @@ func (w IncreaseWorker) OnFailure(ctx context.Context, job jobs.Job) error {
 	return nil
 }
 
-type LowerizeArgs struct {
-	LowerizeThis string `json:"lowerize_this"`
-}
-type LowerizeResult struct {
-	Lowerized string `json:"lowerized"`
-}
-
 func Lowerize(ctx context.Context, job jobs.Job) (interface{}, error) {
 	t := time.Now()
 	log.Println("start job", job.ID, string(job.Arguments))
 	defer func() { log.Println("end job", job.ID, "in", time.Since(t)) }()
 
 	// Parse the job arguments into a struct
-	args := LowerizeArgs{}
+	args := herokujobs.LowerizeArgs{}
 	if err := job.ParseArguments(&args); err != nil {
 		return nil, err
 	}
@@ -114,8 +101,9 @@ func Lowerize(ctx context.Context, job jobs.Job) (interface{}, error) {
 	time.Sleep(time.Duration(rand.Int()%2000) * time.Millisecond)
 
 	// Save the result
-	return LowerizeResult{Lowerized: strings.ToLower(args.LowerizeThis)}, nil
+	return herokujobs.LowerizeResult{Lowerized: strings.ToLower(args.LowerizeThis)}, nil
 }
+
 func manageErr(err error) {
 	if err != nil {
 		log.Fatal(err)

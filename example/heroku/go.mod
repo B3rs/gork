@@ -1,16 +1,20 @@
-module github.com/B3rs/gork/example/worker
+module github.com/B3rs/gork/example/heroku
 
 go 1.17
 
+replace heroku => ./
+
 require (
 	github.com/B3rs/gork v0.0.0-20220201155242-df3953d2ee4f
+	github.com/google/uuid v1.3.0
+	github.com/labstack/echo/v4 v4.6.3
 	github.com/lib/pq v1.10.4
+	heroku v0.0.0-00010101000000-000000000000
 )
 
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/mock v1.6.0 // indirect
-	github.com/labstack/echo/v4 v4.6.2 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
