@@ -7,7 +7,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/labstack/echo/v4 v4.6.3
 	github.com/lib/pq v1.10.4
-	heroku v0.0.0-00010101000000-000000000000
 )
 
 require (
