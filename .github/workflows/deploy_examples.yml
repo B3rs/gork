@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       - uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
@@ -21,14 +22,15 @@ jobs:
             COMMAND
         env:
           COMMAND: worker
-      # - uses: akhileshns/heroku-deploy@v3.12.12
-      #   with:
-      #     heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-      #     heroku_app_name: "gork-client-example"
-      #     heroku_email: ${{secrets.HEROKU_EMAIL}}
-      #     usedocker: true
-      #     appdir: example/heroku/client
-      #     docker_build_args: |
-      #       COMMAND
-      #   env:
-      #     COMMAND: client
+
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "gork-client-example"
+          heroku_email: ${{secrets.HEROKU_EMAIL}}
+          usedocker: true
+          appdir: example/heroku/client
+          docker_build_args: |
+            COMMAND
+        env:
+          COMMAND: client
