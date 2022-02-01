@@ -18,7 +18,7 @@ import (
 func main() {
 
 	// open a db connection
-	db, err := sql.Open("postgres", os.Getenv("POSTGRES_URI"))
+	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	manageErr(err)
 
 	// create a worker pool
