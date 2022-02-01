@@ -2,8 +2,6 @@ module github.com/B3rs/gork/example/heroku
 
 go 1.17
 
-replace heroku => ./
-
 require (
 	github.com/B3rs/gork v0.0.0-20220201155242-df3953d2ee4f
 	github.com/google/uuid v1.3.0
