@@ -29,7 +29,7 @@ jobs:
           heroku_app_name: "gork-client-example"
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           usedocker: true
-          appdir: example/heroku/client
+          appdir: example/heroku
           docker_build_args: |
             COMMAND
         env:
