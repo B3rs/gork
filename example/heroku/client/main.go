@@ -12,6 +12,7 @@ import (
 	"github.com/B3rs/gork/example/heroku/client/api"
 	echo "github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	_ "github.com/lib/pq"
 )
 
 // content holds our static web server content.
