@@ -1,13 +1,12 @@
 import "./App.css";
 
 import React, { useState } from "react";
-import Container from "@mui/material/Container";
-import { Box } from "@mui/material";
+import "rsuite/dist/rsuite.min.css";
 import { HashRouter, Routes, Route } from "react-router-dom";
-
 import SearchAppBar from "./components/SearchAppBar";
 import ListJobs from "./routes/ListJobs";
 import ViewJob from "./routes/ViewJob";
+import { Container, Content, Footer, Header } from "rsuite";
 
 function App() {
   const [search, setSearch] = useState("");
@@ -18,15 +17,17 @@ function App() {
 
   return (
     <HashRouter>
-      <SearchAppBar onSearch={onSearch} />
-
-      <Box sx={{ p: 2 }} />
-
-      <Container maxWidth="xl">
-        <Routes>
-          <Route path="/" element={<ListJobs search={search} />} />
-          <Route path="/jobs/:id" element={<ViewJob />} />
-        </Routes>
+      <Container>
+        <Header>
+          <SearchAppBar onSearch={onSearch} />
+        </Header>
+        <Content style={{ marginTop: 20 }}>
+          <Routes>
+            <Route path="/" element={<ListJobs search={search} />} />
+            <Route path="/jobs/:id" element={<ViewJob />} />
+          </Routes>
+        </Content>
+        <Footer> </Footer>
       </Container>
     </HashRouter>
   );

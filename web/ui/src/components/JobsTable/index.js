@@ -1,21 +1,10 @@
 import React, { useState, useEffect } from "react";
 
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import Button from "@mui/material/Button";
-import Link from "@mui/material/Link";
-import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
-import AlarmOffIcon from "@mui/icons-material/AlarmOff";
-
 import { fetchJobs, retryJob, cancelJob } from "../../api/jobs/";
 import ColoredStatus from "./ColoredStatus";
-import { Link as RouterLink } from "react-router-dom";
-import { Tooltip } from "@mui/material";
+import { Link } from "react-router-dom";
+
+import Table from "rsuite/Table";
 
 function JobsTable(props) {
   const [jobs, setJobs] = useState([]);
@@ -48,76 +37,105 @@ function JobsTable(props) {
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="jobs table">
-        <TableHead>
-          <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell align="right">Queue</TableCell>
-            <TableCell align="right">Status</TableCell>
-            <TableCell align="right">Scheduled at</TableCell>
-            <TableCell align="right">Last Error</TableCell>
-            <TableCell align="right">Arguments</TableCell>
-            <TableCell align="right">Result</TableCell>
-            <TableCell align="right">Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {jobs.map((row) => (
-            <TableRow
-              key={row.id}
-              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-            >
-              <TableCell component="th" scope="row">
-                <Link
-                  component={RouterLink}
-                  to={`/jobs/${row.id}`}
-                  state={{ job: row }}
-                >
-                  {row.id}
-                </Link>
-              </TableCell>
-              <TableCell align="right">{row.queue}</TableCell>
-              <TableCell align="right">
-                <ColoredStatus status={row.status} />
-              </TableCell>
-              <TableCell align="right">
-                {new Date(row.scheduled_at).toLocaleString()}
-              </TableCell>
-              <TableCell align="right">{row.last_error}</TableCell>
-              <TableCell align="right">
-                {JSON.stringify(row.arguments)}
-              </TableCell>
-              <TableCell align="right">{JSON.stringify(row.result)}</TableCell>
-              <TableCell align="right">
-                {row.status !== "initialized" && (
-                  <Tooltip title="Run now">
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => retryClick(row.id)}
-                    >
-                      <DirectionsRunIcon />
-                    </Button>
-                  </Tooltip>
-                )}
-                {row.status === "scheduled" && (
-                  <Tooltip title="Cancel">
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      onClick={() => cancelClick(row.id)}
-                    >
-                      <AlarmOffIcon />
-                    </Button>
-                  </Tooltip>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Table height={400} data={jobs}>
+      <Table.Column align="left" fixed flexGrow={1}>
+        <Table.HeaderCell>ID</Table.HeaderCell>
+        <Table.Cell>
+          {(job) => (
+            <Link to={`/jobs/${job.id}`} state={{ job: job }}>
+              {job.id}
+            </Link>
+          )}
+        </Table.Cell>
+      </Table.Column>
+
+      <Table.Column align="left" flexGrow={1}>
+        <Table.HeaderCell>Queue</Table.HeaderCell>
+        <Table.Cell dataKey="queue" />
+      </Table.Column>
+
+      <Table.Column align="left" flexGrow={1}>
+        <Table.HeaderCell>Status</Table.HeaderCell>
+        <Table.Cell>
+          {(job) => <ColoredStatus status={job.status} />}
+        </Table.Cell>
+      </Table.Column>
+
+      <Table.Column align="left" flexGrow={1}>
+        <Table.HeaderCell>Scheduled at</Table.HeaderCell>
+        <Table.Cell>
+          {(job) => new Date(job.scheduled_at).toLocaleString()}
+        </Table.Cell>
+      </Table.Column>
+
+      <Table.Column align="left" flexGrow={1}>
+        <Table.HeaderCell>Last Error</Table.HeaderCell>
+        <Table.Cell dataKey="last_error" />
+      </Table.Column>
+
+      <Table.Column align="left" flexGrow={2}>
+        <Table.HeaderCell>Arguments</Table.HeaderCell>
+        <Table.Cell>
+          {(job) => <code>{JSON.stringify(job.arguments)}</code>}
+        </Table.Cell>
+      </Table.Column>
+
+      <Table.Column align="left" flexGrow={2}>
+        <Table.HeaderCell>Result</Table.HeaderCell>
+        <Table.Cell>
+          {(job) => <code>{JSON.stringify(job.result)}</code>}
+        </Table.Cell>
+      </Table.Column>
+
+      <Table.Column align="right" flexGrow={1} fixed>
+        <Table.HeaderCell>Actions</Table.HeaderCell>
+        <Table.Cell>
+          {(job) => {
+            switch (job.status) {
+              case "scheduled":
+                return (
+                  <>
+                    <a href="#" onClick={() => retryClick(job.id)}>
+                      Run
+                    </a>{" "}
+                    |
+                    <a href="#" onClick={() => cancelClick(job.id)}>
+                      Cancel
+                    </a>
+                  </>
+                );
+              case "initialized":
+                return <></>;
+              case "failed":
+                return (
+                  <>
+                    <a href="#" onClick={() => retryClick(job.id)}>
+                      Retry
+                    </a>
+                  </>
+                );
+              case "canceled":
+                return (
+                  <>
+                    <a href="#" onClick={() => retryClick(job.id)}>
+                      Run
+                    </a>
+                  </>
+                );
+              case "completed":
+                return (
+                  <>
+                    <a href="#" onClick={() => retryClick(job.id)}>
+                      Run again
+                    </a>
+                  </>
+                );
+              default:
+            }
+          }}
+        </Table.Cell>
+      </Table.Column>
+    </Table>
   );
 }
 

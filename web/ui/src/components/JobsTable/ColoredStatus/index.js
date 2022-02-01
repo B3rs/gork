@@ -1,19 +1,18 @@
-import * as React from "react";
-import Chip from "@mui/material/Chip";
+import Tag from "rsuite/Tag";
 
 const getColor = (status) => {
   switch (status) {
     case "failed":
-      return "error";
+      return "red";
     case "completed":
-      return "success";
+      return "green";
     case "scheduled":
-      return "info";
+      return "blue";
     default:
       return "default";
   }
 };
 
 export default function ColoredStatus(props) {
-  return <Chip label={props.status} color={getColor(props.status)} />;
+  return <Tag color={getColor(props.status)}>{props.status}</Tag>;
 }

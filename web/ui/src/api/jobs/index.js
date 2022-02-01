@@ -1,5 +1,5 @@
 const BASE_URL =
-  process.env.NODE_ENV == "development"
+  process.env.NODE_ENV === "development"
     ? "http://localhost:8080/"
     : window.location.href;
 
@@ -53,6 +53,19 @@ export const cancelJob = async (id) => {
     if (resp.status !== 200) {
       throw new Error(resp.statusText);
     }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const fetchStats = async () => {
+  try {
+    const resp = await fetch(`${BASE_URL}api/v1/stats`);
+    if (resp.status !== 200) {
+      throw new Error(resp.statusText);
+    }
+
+    return resp.json();
   } catch (error) {
     console.log(error);
   }
