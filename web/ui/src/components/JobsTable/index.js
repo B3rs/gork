@@ -37,7 +37,7 @@ function JobsTable(props) {
   };
 
   return (
-    <Table height={400} data={jobs}>
+    <Table autoHeight data={jobs}>
       <Table.Column align="left" fixed flexGrow={1}>
         <Table.HeaderCell>ID</Table.HeaderCell>
         <Table.Cell>

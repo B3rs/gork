@@ -3,6 +3,7 @@ module github.com/B3rs/gork
 go 1.17
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/golang/mock v1.6.0
 	github.com/labstack/echo/v4 v4.6.2
 	github.com/stretchr/testify v1.7.0
@@ -10,7 +11,6 @@ require (
 )
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
