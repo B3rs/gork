@@ -41,7 +41,7 @@ export default function LowerizeForm(props) {
               },
             ]}
             onSelect={(date) => onSelectedDate(date)}
-            style={{ width: 260 }}
+            defaultValue={new Date()}
           />
         </Form.Group>
         <Form.Group>
