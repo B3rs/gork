@@ -15,7 +15,7 @@ export const fetchJob = async (id) => {
 
 export const createJob = async (params) => {
   try {
-    const resp = await fetch(`${BASE_URL}api/v1/jobs/create`, {
+    const resp = await fetch(`${BASE_URL}api/v1/jobs`, {
       method: "POST",
     });
     if (resp.status !== 200) {
