@@ -61,23 +61,16 @@ function JobsTable(props) {
         </Table.Cell>
       </Table.Column>
 
-      <Table.Column align="left" flexGrow={1}>
+      <Table.Column align="left" flexGrow={2}>
         <Table.HeaderCell>Scheduled at</Table.HeaderCell>
         <Table.Cell>
           {(job) => new Date(job.scheduled_at).toLocaleString()}
         </Table.Cell>
       </Table.Column>
 
-      <Table.Column align="left" flexGrow={1}>
+      <Table.Column align="left" flexGrow={2}>
         <Table.HeaderCell>Last Error</Table.HeaderCell>
         <Table.Cell dataKey="last_error" />
-      </Table.Column>
-
-      <Table.Column align="left" flexGrow={2}>
-        <Table.HeaderCell>Arguments</Table.HeaderCell>
-        <Table.Cell>
-          {(job) => <code>{JSON.stringify(job.arguments)}</code>}
-        </Table.Cell>
       </Table.Column>
 
       <Table.Column align="left" flexGrow={2}>

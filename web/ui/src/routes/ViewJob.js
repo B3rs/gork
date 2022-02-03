@@ -25,6 +25,7 @@ function ViewJob(props) {
     { label: "ID", value: job.id },
     { label: "Queue", value: job.queue },
     { label: "Status", value: JSON.stringify(job.status) },
+    { label: "Arguments", value: JSON.stringify(job.arguments) },
     { label: "Result", value: JSON.stringify(job.result) },
     { label: "Last Error", value: job.last_error },
     { label: "Retry Count", value: job.retry_count },
