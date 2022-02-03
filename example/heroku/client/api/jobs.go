@@ -31,11 +31,13 @@ type JobsAPI struct {
 }
 
 type createParams struct {
-	ID     string `json:"id"`
-	Number int    `json:"number"`
+	ID          string    `json:"id"`
+	Queue       string    `json:"queue"`
+	Number      int       `json:"number"`
+	ScheduledAt time.Time `json:"scheduled_at"`
 }
 
-func (j JobsAPI) CreateIncrease(c echo.Context) error {
+func (j JobsAPI) Create(c echo.Context) error {
 
 	params := &createParams{}
 	err := c.Bind(params)
@@ -46,11 +48,19 @@ func (j JobsAPI) CreateIncrease(c echo.Context) error {
 	if params.ID == "" {
 		params.ID = uuid.New().String()
 	}
+	if params.Queue == "" {
+		params.Queue = "increase"
+	}
 	if params.Number == 0 {
 		params.Number = rand.Intn(1000)
 	}
 
-	err = j.scheduler.Schedule(c.Request().Context(), params.ID, "increase", herokujobs.IncreaseArgs{IncreaseThis: params.Number})
+	options := []client.OptionFunc{}
+	if !params.ScheduledAt.IsZero() {
+		options = append(options, client.WithScheduleTime(params.ScheduledAt))
+	}
+
+	err = j.scheduler.Schedule(c.Request().Context(), params.ID, params.Queue, herokujobs.IncreaseArgs{IncreaseThis: params.Number}, options...)
 	if err != nil {
 		return err
 	}

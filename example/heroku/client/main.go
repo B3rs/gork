@@ -58,11 +58,17 @@ func main() {
 		jobs := api.NewJobsAPI(c)
 
 		v1 := e.Group("/api/v1")
-		v1.POST("/jobs/increase", jobs.CreateIncrease)
+		v1.POST("/jobs", jobs.Create)
 		v1.GET("/jobs/:id", jobs.Get)
 	}
 
+	e.HTTPErrorHandler = customHTTPErrorHandler
+
 	manageErr(e.Start(":" + os.Getenv("PORT")))
+}
+
+func customHTTPErrorHandler(err error, c echo.Context) {
+	c.Logger().Error(err)
 }
 
 func manageErr(err error) {
