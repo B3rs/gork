@@ -17,6 +17,10 @@ export const createJob = async (params) => {
   try {
     const resp = await fetch(`${BASE_URL}api/v1/jobs`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
     });
     if (resp.status !== 200) {
       throw new Error(resp.statusText);

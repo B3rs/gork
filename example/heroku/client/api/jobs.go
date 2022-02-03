@@ -39,9 +39,8 @@ type createParams struct {
 
 func (j JobsAPI) Create(c echo.Context) error {
 
-	params := &createParams{}
-	err := c.Bind(params)
-	if err != nil {
+	params := new(createParams)
+	if err := c.Bind(params); err != nil {
 		return err
 	}
 
@@ -60,8 +59,13 @@ func (j JobsAPI) Create(c echo.Context) error {
 		options = append(options, client.WithScheduleTime(params.ScheduledAt))
 	}
 
-	err = j.scheduler.Schedule(c.Request().Context(), params.ID, params.Queue, herokujobs.IncreaseArgs{IncreaseThis: params.Number}, options...)
-	if err != nil {
+	if err := j.scheduler.Schedule(
+		c.Request().Context(),
+		params.ID,
+		params.Queue,
+		herokujobs.IncreaseArgs{IncreaseThis: params.Number},
+		options...,
+	); err != nil {
 		return err
 	}
 
