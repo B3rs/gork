@@ -48,6 +48,14 @@ If the job gets stuck or the worker crashes a "reaper" will reschedule the job f
 
 Gork jobs semantic is "AT LEAST ONCE"
 
+## See it in action!
+
+You can create jobs here
+https://gork-client-example.herokuapp.com/
+
+And check what happens here!
+https://gork-worker-example.herokuapp.com/
+
 ### TODO
 
 - [ ] proper documentation
