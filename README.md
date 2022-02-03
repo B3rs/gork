@@ -1,32 +1,58 @@
 # gork
 
-golang "postgresql backed" worker library
+golang, SQL based, simple enough, worker library
 
 ## Introduction
 
-Did you ever dream of executing code at a given time?
-Did you ever dream about calling a third party but not blocking kafka consumers because of some broken constraint?
-Did you have any concerns about "transactionality" in calling third party services?
-
-gork is the answer
-
-gork uses postgresql tables to create a queue of jobs that can be executed, re-executed, scheduled and retryed all within your beloved transactions.
+Gork is a worker library based on plain SQL instructions, it allows you to schedule and execute jobs in a simple and even transactional way (if needed).
+In comparison to machinery or other frameworks gork focuses on simplicity and visibility instead of performances (while being performant enough).
+Who needs redis when you already have an SQL database?
 
 see examples to see it in action.
+
+## How it works
+
+gork under the hood uses a table like the following.
+
+```
+CREATE TABLE jobs (
+  id varchar primary key,
+  queue varchar not null,
+  status varchar not null,
+  arguments jsonb not null default '{}'::jsonb,
+  result jsonb not null default '{}'::jsonb,
+  last_error varchar,
+  retry_count integer not null default 0,
+  options jsonb not null default '{}'::jsonb,
+  scheduled_at timestamptz default now(),
+  started_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+CREATE INDEX ON jobs (queue);
+CREATE INDEX ON jobs (scheduled_at);
+CREATE INDEX ON jobs (status);
+CREATE INDEX ON jobs (started_at);
+```
+
+Every worker registered in the pool will poll the database with a
+
+```
+FOR UPDATE SKIP LOCKED
+```
+
+query to dequeue a job to be executed.
+
+If the job gets stuck or the worker crashes a "reaper" will reschedule the job for you.
+
+Gork jobs semantic is "AT LEAST ONCE"
 
 ### TODO
 
 - [ ] proper documentation
-- [x] database indexes tuning
-- [x] improve code structure
 - [ ] unit tests
-- [ ] goconvey tests
-- [x] admin ui
+- [ ] api tests
 - [ ] metrics and alerts
-- [x] job retry
-- [ ] failure notifications (investigate sentry)
 - [ ] performance benchmarks
 - [ ] workers statistics
-- [ ] queue statistics
-- [ ] CI with gh actions
-- [x] Job failure callbacks
